@@ -8,7 +8,7 @@ const Estudiante = require("./estudianteModel")(sequelize, DataTypes);
 const Rol = require("./rolModel")(sequelize, DataTypes);
 
 
-// Relaciones
+// Relaciones 
 Usuario.hasOne(Estudiante, { foreignKey: "id_estudiante" });
 Estudiante.belongsTo(Usuario, { foreignKey: "id_estudiante" });
 

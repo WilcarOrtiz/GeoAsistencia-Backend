@@ -10,7 +10,7 @@
  *         - apellidos
  *         - correo
  *         - contrasena
- *         - id_rol
+ *         - rol
  *       properties:
  *         identificacion:
  *           type: string
@@ -27,10 +27,10 @@
  *         contrasena:
  *           type: string
  *           example: "MiContraseñaSegura123"
- *         id_rol:
- *           type: integer
- *           enum: [1) DOCENTE, 2) ESTUDIANTE, 3) ADMINISTRADOR]
- *           example: 1
+ *         rol:
+ *           type: string
+ *           enum: [DOCENTE,ESTUDIANTE,ADMINISTRADOR]
+ *           example: "DOCENTE"
  *         estado:
  *           type: boolean
  *           example: true

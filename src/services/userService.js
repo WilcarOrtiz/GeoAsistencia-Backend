@@ -1,6 +1,6 @@
-const { Usuario, Docente, Estudiante } = require("../models");
-const { v4: uuidv4 } = require("uuid"); // para generar IDs únicos
-const bcrypt = require("bcryptjs"); // para encriptar la contraseña
+const { Usuario, Docente, Estudiante, Rol } = require("../models");
+
+const admin = require("../firebase/firebase"); //esto es para firebase
 
 async function crearUsuario(data) {
   try {
@@ -10,39 +10,53 @@ async function crearUsuario(data) {
       apellidos,
       correo,
       contrasena,
-      id_rol,
+      rol,
       estado,
       uuid_telefono,
     } = data;
 
-    // Validar que no exista ya el correo
+    // Validaciones
     const existente = await Usuario.findOne({ where: { correo } });
     if (existente) {
       throw new Error("El correo ya está registrado.");
     }
 
-    // Generar un ID único esto es de prueba,  ya que tengo que meter el de firebase
-    const id_usuario = uuidv4();
+    //  Buscar ID del rol
+    const rol_supabase = await Rol.findOne({ where: { nombre: rol } });
+    console.log("Rol encontrado:", rol_supabase.id_rol);
 
+    // Crear usuario en Firebase
+    const firebaseUser = await admin.auth().createUser({
+      email: correo,
+      password: contrasena,
+      displayName: `${nombres} ${apellidos}`,
+    });
+
+    await admin.auth().setCustomUserClaims(firebaseUser.uid, {
+      rol,
+      uuid_telefono,
+    });
+
+    const id_usuario = firebaseUser.uid;
     // Crear en la tabla Usuario
     const nuevoUsuario = await Usuario.create({
-      id_usuario,
+      id_usuario: id_usuario,
       identificacion,
       nombres,
       apellidos,
       correo,
       contrasena,
       estado,
-      id_rol,
+      id_rol: rol_supabase.id_rol,
     });
 
-    if (id_rol === 1) {
+    if (rol === "DOCENTE") {
       await Docente.create({
         id_docente: id_usuario,
         uuid_telefono: uuid_telefono || null,
         estado,
       });
-    } else if (id_rol === 2) {
+    } else if (rol === "ESTUDIANTE") {
       await Estudiante.create({
         id_estudiante: id_usuario,
         uuid_telefono: uuid_telefono || null,
@@ -53,7 +67,7 @@ async function crearUsuario(data) {
     return {
       mensaje: "Usuario registrado correctamente.",
       idUsuario: id_usuario,
-      id_rol,
+      id_rol: rol_supabase.id_rol,
     };
   } catch (error) {
     throw new Error(`Error al crear usuario: ${error.message}`);
