@@ -1,14 +1,49 @@
+require("dotenv").config();
 const { Sequelize } = require("sequelize");
 
-const sequelize = new Sequelize(process.env.SUPABASE_DB_URL, {
+console.log("🔍 Configurando conexión a Supabase...");
+
+if (!process.env.DATABASE_URL) {
+  console.error(
+    "❌ DATABASE_URL no está configurada en las variables de entorno"
+  );
+  process.exit(1);
+}
+
+const sequelize = new Sequelize(process.env.DATABASE_URL, {
   dialect: "postgres",
   dialectOptions: {
-    ssl: { rejectUnauthorized: false }, // Requerido por Supabase
+    ssl: {
+      require: true,
+      rejectUnauthorized: false,
+    },
   },
-  define: {
-    freezeTableName: true, // Evita que Sequelize pluralice los nombres
-    timestamps: false, // Si tus tablas no tienen createdAt/updatedAt
+  pool: {
+    max: 5,
+    min: 0,
+    acquire: 30000,
+    idle: 10000,
   },
+  retry: {
+    match: [
+      /ETIMEDOUT/,
+      /EHOSTUNREACH/,
+      /ECONNRESET/,
+      /ECONNREFUSED/,
+      /ETIMEDOUT/,
+      /ESOCKETTIMEDOUT/,
+      /EHOSTUNREACH/,
+      /EPIPE/,
+      /EAI_AGAIN/,
+      /SequelizeConnectionError/,
+      /SequelizeConnectionRefusedError/,
+      /SequelizeHostNotFoundError/,
+      /SequelizeInvalidConnectionError/,
+      /SequelizeConnectionTimedOutError/,
+    ],
+    max: 3,
+  },
+  logging: console.log, // Para ver las consultas SQL
 });
 
 module.exports = sequelize;

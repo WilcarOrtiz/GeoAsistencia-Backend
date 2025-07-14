@@ -7,7 +7,7 @@ const options = {
     openapi: "3.0.0",
     info: { title: "GeoAsistencia API", version: "1.0.0" },
   },
-  apis: [],
+  apis: ["./src/v1/routes/userRoutes.js", "./src/schemas/userSchema.js"],
 };
 
 // Docs in JSON format
