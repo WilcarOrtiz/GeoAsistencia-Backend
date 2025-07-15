@@ -7,7 +7,7 @@ const Docente = require("./docenteModel")(sequelize, DataTypes);
 const Estudiante = require("./estudianteModel")(sequelize, DataTypes);
 const Rol = require("./rolModel")(sequelize, DataTypes);
 const Asignatura = require("./asignaturaModel")(sequelize, DataTypes);
-
+const Grupo = require("./grupoModel")(sequelize, DataTypes);
 
 // Relaciones 
 Usuario.hasOne(Estudiante, { foreignKey: "id_estudiante" });
@@ -19,11 +19,29 @@ Docente.belongsTo(Usuario, { foreignKey: "id_docente" });
 Rol.hasMany(Usuario, { foreignKey: "id_rol" });
 Usuario.belongsTo(Rol, { foreignKey: "id_rol" });
 
+Asignatura.hasMany(Grupo, { foreignKey: "id_asignatura" });
+Grupo.belongsTo(Asignatura, { foreignKey: "id_asignatura" });
+
+Docente.hasMany(Grupo, { foreignKey: "id_docente" });
+Grupo.belongsTo(Docente, { foreignKey: "id_docente" });
+
+Estudiante.belongsToMany(Grupo, {
+  through: "ESTUDIANTE_GRUPO",
+  foreignKey: "id_estudiante"
+});
+
+Grupo.belongsToMany(Estudiante, {
+  through: "ESTUDIANTE_GRUPO",
+  foreignKey: "id_grupo"
+});
+
+
 module.exports = {
   sequelize,
   Usuario,
   Docente,
   Estudiante,
   Rol,
-  Asignatura
+  Asignatura,
+  Grupo
 };
