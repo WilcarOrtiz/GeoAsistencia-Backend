@@ -62,8 +62,23 @@ async function habilitarAsignatura(id_asignatura, estado) {
     
 }
 
+async function consultarAsignaturas() {
+    try {
+        const asignaturas = await Asignatura.findAll();
+        return {
+                success: true,
+                mensaje: "Asignaturas consultadas correctamente.",
+                asignaturas: asignaturas
+        };
+    } catch (error) {
+        throw new Error(`Error al consultar las asignaturas: ${error.message}`);
+    }
+
+}
+
 module.exports = {
     crearAsignatura,
     editarAsignatura,
-    habilitarAsignatura
+    habilitarAsignatura,
+    consultarAsignaturas
 }
