@@ -26,7 +26,7 @@ async function main() {
 
     app.use(
       cors({
-        credentials: true,
+        credentials: false,
         origin: (origin, callback) => {
           callback(null, true);
         },

@@ -1,15 +1,15 @@
-function validarAsignatura({ nombre, codigo, estado}) {
+function validarAsignatura({ nombre, codigo, estado }) {
   const errores = [];
 
-  if (!nombre || nombre.trim() === "") {
-    errores.push("El nombre no puede estar vacío.");
+  if (!nombre || typeof nombre !== "string" || nombre.trim() === "") {
+    errores.push("El nombre debe ser una cadena de string no vacía.");
   }
 
-  if (!codigo || codigo.trim() === "") {
-    errores.push("El código no puede estar vacío.");
+  if (!codigo || typeof codigo !== "string" || codigo.trim() === "") {
+    errores.push("El codigo debe ser una cadena de string no vacía.");
   }
 
-  if (typeof estado !== "boolean") {
+  if (typeof estado !== "boolean" || !estado) {
     errores.push("El estado debe ser verdadero o falso (Tipo booleano).");
   }
 

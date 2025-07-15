@@ -42,6 +42,14 @@ const asignaturaController = require("../../controllers/asignaturaController");
  *                   example: La asignatura ya está registrada.
  *       500:
  *         description: Error interno del servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Error interno del servidor: ..."
  */
 router.post("/registrar", asignaturaController.crearAsignatura);
 
@@ -73,11 +81,38 @@ router.post("/registrar", asignaturaController.crearAsignatura);
  *                 type: boolean
  *     responses:
  *       200:
- *         description: Asignatura editada correctamente
+ *         description: Asignatura editada correctamente.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 mensaje:
+ *                   type: string
+ *                   example: "Asignatura editada correctamente."
  *       404:
  *         description: Asignatura no encontrada
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Asignatura no encontrada."
  *       500:
- *         description: Error del servidor
+ *         description: Error interno del servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Error interno del servidor: ..."
  */
 router.put("/editar/:id_asignatura", asignaturaController.editarAsignatura);
 
@@ -105,12 +140,76 @@ router.put("/editar/:id_asignatura", asignaturaController.editarAsignatura);
  *                 type: boolean
  *     responses:
  *       200:
- *         description: Asignatura habilitada/deshabilitada correctamente
+ *         description: Asignatura habilitada correctamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 mensaje:
+ *                   type: string
+ *                   example: "Asignatura habilitada correctamente."
  *       404:
  *         description: Asignatura no encontrada
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Asignatura no encontrada."
  *       500:
- *         description: Error del servidor
+ *         description: Error interno del servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Error interno del servidor: ..."
  */
 router.patch("/habilitar/:id_asignatura", asignaturaController.habilitarAsignatura);
+
+/**
+ * @openapi
+ * /asignatura:
+ *   get:
+ *     summary: Consultar todas las asignaturas
+ *     tags: [Asignaturas]
+ *     responses:
+ *       200:
+ *         description: Asignaturas consultadas correctamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 mensaje:
+ *                   type: string
+ *                   example: Asignaturas consultadas correctamente.
+ *                 asignaturas:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Asignatura'
+ *       500:
+ *         description: Error del servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Error interno del servidor: ..."
+ */
+router.get("/", asignaturaController.consultarAsignaturas);
 
 module.exports = router;
