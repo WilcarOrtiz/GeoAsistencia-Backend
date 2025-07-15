@@ -1,5 +1,5 @@
 const userService = require("../services/userService");
-const path = require("path");
+const xlsx = require("xlsx");
 
 async function registrarUsuario(req, res) {
   try {
@@ -40,11 +40,15 @@ async function crearUsuarioMasivamente(req, res) {
   try {
     const archivo = req.file;
     if (!archivo) {
-      return res.status(400).json({ error: "No se envió archivo Excel." });
+      return res
+        .status(400)
+        .json({ success: false, error: "No se envió archivo Excel." });
     }
 
-    const filePath = path.resolve(archivo.path);
-    const resultado = await userService.crearUsuarioMasivamente(filePath);
+    const workbook = xlsx.read(archivo.buffer, { type: "buffer" });
+    const hoja = workbook.Sheets[workbook.SheetNames[0]];
+    const datos = xlsx.utils.sheet_to_json(hoja);
+    const resultado = await userService.crearUsuarioMasivamente(datos);
 
     res.status(200).json({
       success: true,

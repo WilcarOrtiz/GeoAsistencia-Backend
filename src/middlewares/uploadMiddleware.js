@@ -1,4 +1,4 @@
-const multer = require("multer");
+/*const multer = require("multer");
 const path = require("path");
 
 // Configuración del almacenamiento temporal
@@ -13,4 +13,11 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
+module.exports = upload;
+ */
+
+// upload.js o config/multer.js
+const multer = require("multer");
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
 module.exports = upload;
