@@ -43,7 +43,42 @@ const asignaturaController = require("../../controllers/asignaturaController");
  *       500:
  *         description: Error interno del servidor
  */
-
 router.post("/registrar", asignaturaController.crearAsignatura);
 
+
+/**
+ * @openapi
+ * /asignatura/editar/{id_asignatura}:
+ *   put:
+ *     summary: Editar una asignatura
+ *     tags: [Asignaturas]
+ *     parameters:
+ *       - in: path
+ *         name: id_asignatura
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID de la asignatura a editar
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nombre:
+ *                 type: string
+ *               codigo:
+ *                 type: string
+ *               estado:
+ *                 type: boolean
+ *     responses:
+ *       200:
+ *         description: Asignatura editada correctamente
+ *       404:
+ *         description: Asignatura no encontrada
+ *       500:
+ *         description: Error del servidor
+ */
+router.put("/editar/:id_asignatura", asignaturaController.editarAsignatura);
 module.exports = router;
