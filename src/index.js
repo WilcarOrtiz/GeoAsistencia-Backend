@@ -14,7 +14,6 @@ const asignaturaRoutes = require("./v1/routes/asignaturaRoutes");
 
 async function main() {
   try {
-    console.log('DATABASE_URL:', process.env.DATABASE_URL);
     await sequelize.authenticate();
     const app = express();
     app.use(cookieParser());

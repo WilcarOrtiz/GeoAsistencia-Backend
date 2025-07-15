@@ -4,7 +4,7 @@ const asignaturaController = require("../../controllers/asignaturaController");
 
 /**
  * @openapi
- * /api/v1/asignaturas:
+ * /asignatura/registrar:
  *   post:
  *     summary: Crea una nueva asignatura
  *     tags: [Asignaturas]
@@ -44,6 +44,6 @@ const asignaturaController = require("../../controllers/asignaturaController");
  *         description: Error interno del servidor
  */
 
-router.post("/asignaturas", asignaturaController.crearAsignatura);
+router.post("/registrar", asignaturaController.crearAsignatura);
 
 module.exports = router;
