@@ -1,23 +1,40 @@
 const swaggerJSDoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
 
-// Basic Meta Informations about our API
 const options = {
   definition: {
     openapi: "3.0.0",
-    info: { title: "GeoAsistencia API", version: "1.0.0" },
+    info: {
+      title: "GeoAsistencia API",
+      version: "1.0.0",
+      description: "Documentación de la API para el sistema de GeoAsistencia",
+    },
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT",
+        },
+      },
+    },
+    security: [
+      {
+        bearerAuth: [],
+      },
+    ],
   },
   apis: [
     "./src/v1/routes/docentesRoutes.js",
     "./src/v1/routes/estudianteRoutes.js",
     "./src/v1/routes/authRoutes.js",
-    "./src/v1/routes/asignaturaRoutes.js", "./src/schemas/asignaturaSchema.js",
+    "./src/v1/routes/asignaturaRoutes.js",
+    "./src/schemas/asignaturaSchema.js",
     "./src/schemas/userSchema.js",
     "./src/schemas/grupoSchema.js", "./src/v1/routes/grupoRoutes.js"
   ],
 };
 
-// Docs in JSON format
 const swaggerSpec = swaggerJSDoc(options);
 
 const swaggerDocs = (app, port) => {
@@ -26,8 +43,9 @@ const swaggerDocs = (app, port) => {
     res.setHeader("Content-Type", "application/json");
     res.send(swaggerSpec);
   });
+
   console.log(
-    `Version 1 Docs are available on http://localhost:${port}/api/v1/docs`
+    `✅ Documentación disponible en: http://localhost:${port}/api/v1/docs`
   );
 };
 

@@ -11,8 +11,17 @@ async function habilitarDeshabiliarEstudiante(req, res) {
 async function crearEstudianteMasivamente(req, res) {
   return usuarioController.crearUsuarioMasivamente(req, res);
 }
+
+async function editarEstudiante(req, res) {
+  return usuarioController.editarUsuario(req, res);
+}
+
+const listarEstudiantes = usuarioController.obtenerUsuariosPorRol("ESTUDIANTE");
+
 module.exports = {
   registrarUsuarioEstudiante,
   habilitarDeshabiliarEstudiante,
   crearEstudianteMasivamente,
+  editarEstudiante,
+  listarEstudiantes,
 };
