@@ -6,6 +6,7 @@ const Usuario = require("./userModel")(sequelize, DataTypes);
 const Docente = require("./docenteModel")(sequelize, DataTypes);
 const Estudiante = require("./estudianteModel")(sequelize, DataTypes);
 const Rol = require("./rolModel")(sequelize, DataTypes);
+const Asignatura = require("./asignaturaModel")(sequelize, DataTypes);
 
 
 // Relaciones 
@@ -24,4 +25,5 @@ module.exports = {
   Docente,
   Estudiante,
   Rol,
+  Asignatura
 };

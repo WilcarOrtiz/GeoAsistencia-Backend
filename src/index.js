@@ -8,15 +8,19 @@ const { swaggerDocs: V1SwaggerDocs } = require("./v1/swagger");
 const { sequelize } = require("./models");
 
 const userRoutes = require("./v1/routes/userRoutes");
+const asignaturaRoutes = require("./v1/routes/asignaturaRoutes");
+
 
 async function main() {
   try {
+    console.log('DATABASE_URL:', process.env.DATABASE_URL);
     await sequelize.authenticate();
     const app = express();
     app.use(cookieParser());
     app.use(bodyParser.json());
 
     app.use("/api/v1", userRoutes);
+    app.use("/api/v1", asignaturaRoutes);
 
     app.use(
       cors({
