@@ -21,7 +21,7 @@ async function registrarUsuario(req, res) {
 
 async function cambiarEstadoUsuario(req, res) {
   try {
-    const { id_usuario } = req.body;
+    const { id_usuario } = req.params;
     const resultado = await userService.cambiarEstadoUsuario(id_usuario);
     res.status(200).json({
       success: true,
@@ -60,8 +60,50 @@ async function crearUsuarioMasivamente(req, res) {
   }
 }
 
+async function editarUsuario(req, res) {
+  try {
+    const id_usuario = req.params.id_usuario;
+    const datosActualizados = req.body;
+
+    const resultado = await userService.editarUsuario(
+      datosActualizados,
+      id_usuario
+    );
+
+    res.status(200).json({
+      success: true,
+      message: resultado.mensaje,
+      idUsuario: resultado.idUsuario,
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      error: error.message,
+    });
+  }
+}
+
+function obtenerUsuariosPorRol(nombreRol) {
+  return async function (req, res) {
+    try {
+      const usuarios = await userService.obtenerTodosLosUsuarios(nombreRol);
+      res.status(200).json({
+        success: true,
+        usuarios,
+      });
+    } catch (error) {
+      res.status(400).json({
+        success: false,
+        error: error.message,
+      });
+    }
+  };
+}
+
 module.exports = {
   registrarUsuario,
   cambiarEstadoUsuario,
   crearUsuarioMasivamente,
+  editarUsuario,
+  obtenerUsuariosPorRol,
 };

@@ -2,6 +2,8 @@ const express = require("express");
 const router = express.Router();
 const docenteController = require("../../controllers/docentesController");
 const upload = require("../../middlewares/uploadMiddleware");
+const { verifyToken } = require("../../middlewares/verifyToken");
+const { authorizeRoles } = require("../../middlewares/authorizeRoles");
 
 /**
  * @openapi
@@ -10,7 +12,6 @@ const upload = require("../../middlewares/uploadMiddleware");
  *     tags:
  *       - Docente
  *     summary: Crea un nuevo docente en el sistema
- *
  *     requestBody:
  *       required: true
  *       content:
@@ -59,22 +60,18 @@ router.post("/registrarDocente", docenteController.registrarUsuarioDocente);
 
 /**
  * @openapi
- * /docente/cambiarEstado:
+ * /docente/cambiarEstado/{id_usuario}:
  *   put:
  *     tags:
  *       - Docente
  *     summary: Cambia el estado de un docente (activo/inactivo)
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               id_usuario:
- *                 type: string
- *                 description: ID del usuario (UID de Firebase)
- *                 example: "d7e5d8f2-5f7c-4d85-b9a1-1d1cdeae2e23"
+ *     parameters:
+ *       - in: path
+ *         name: id_usuario
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID del usuario (UID de Firebase)
  *     responses:
  *       200:
  *         description: Estado cambiado exitosamente
@@ -88,7 +85,7 @@ router.post("/registrarDocente", docenteController.registrarUsuarioDocente);
  *                   example: true
  *                 message:
  *                   type: string
- *                   example: "Estado de estudiante actualizado correctamente."
+ *                   example: "Estado de docente actualizado correctamente."
  *                 estado:
  *                   type: boolean
  *                   example: false
@@ -106,7 +103,10 @@ router.post("/registrarDocente", docenteController.registrarUsuarioDocente);
  *                   type: string
  *                   example: "El usuario no existe."
  */
-router.put("/cambiarEstado", docenteController.habilitarDeshabiliarDocente);
+router.put(
+  "/cambiarEstado/:id_usuario",
+  docenteController.habilitarDeshabiliarDocente
+);
 
 /**
  * @openapi
@@ -195,5 +195,109 @@ router.post(
   upload.single("archivo"),
   docenteController.crearDocenteMasivamente
 );
+
+/**
+ * @openapi
+ * /docente/editarDocente/{id_usuario}:
+ *   put:
+ *     tags:
+ *       - Docente
+ *     summary: Edita los datos de un docente existente
+ *     parameters:
+ *       - in: path
+ *         name: id_usuario
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID del docente (UID de Firebase)
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Usuario'
+ *     responses:
+ *       200:
+ *         description: Docente actualizado correctamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 mensaje:
+ *                   type: string
+ *                   example: "Usuario actualizado correctamente."
+ *                 idUsuario:
+ *                   type: string
+ *                   example: "uid-firebase-actualizado"
+ *       400:
+ *         description: Error en la solicitud (correo repetido o ID inválido)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "El nuevo correo ya está registrado."
+ *       5XX:
+ *         description: Error del servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Error al editar usuario: descripción detallada"
+ */
+router.put("/editarDocente/:id_usuario", docenteController.editarDocente);
+
+/**
+ * @openapi
+ * /docente/listar:
+ *   get:
+ *     tags:
+ *       - Docente
+ *     summary: Obtiene todos los docentes registrados en el sistema
+ *     responses:
+ *       200:
+ *         description: Lista de estudiantes obtenida correctamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 usuarios:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Usuario'
+ *       400:
+ *         description: Error al obtener los docentes
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "Error al obtener usuarios"
+ */
+router.get("/listar", docenteController.listarDocentes);
+
+//asi queda la ruta que verifica toeken y rol
+//router.get("/listar", verifyToken, authorizeRoles("ESTUDIANTE"), docenteController.listarDocentes);
 
 module.exports = router;

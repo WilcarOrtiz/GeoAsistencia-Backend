@@ -9,6 +9,7 @@ const authController = require("../../controllers/authController");
  *     tags:
  *       - Autenticación
  *     summary: Enviar enlace de recuperación de contraseña al correo del usuario
+ *     security: [] 
  *     requestBody:
  *       required: true
  *       content:
