@@ -1,6 +1,6 @@
 const { Usuario, Docente, Estudiante, Rol } = require("../models");
 
-const admin = require("../firebase/firebase"); //esto es para firebase
+const admin = require("../firebase/firebase");
 
 async function crearUsuario(data) {
   try {
@@ -38,14 +38,13 @@ async function crearUsuario(data) {
     });
 
     const id_usuario = firebaseUser.uid;
-    // Crear en la tabla Usuario
+
     const nuevoUsuario = await Usuario.create({
       id_usuario: id_usuario,
       identificacion,
       nombres,
       apellidos,
       correo,
-      contrasena,
       estado,
       id_rol: rol_supabase.id_rol,
     });

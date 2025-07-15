@@ -10,7 +10,6 @@ module.exports = (sequelize, DataTypes) => {
       nombres: DataTypes.STRING,
       apellidos: DataTypes.STRING,
       correo: DataTypes.STRING,
-      contrasena: DataTypes.STRING,
       id_rol: {
         type: DataTypes.INTEGER,
         allowNull: false,
@@ -25,15 +24,6 @@ module.exports = (sequelize, DataTypes) => {
       timestamps: false,
     }
   );
-
-  // Hook para encriptar contraseña
-  Usuario.beforeCreate(async (usuario, options) => {
-    const bcrypt = require("bcryptjs");
-    if (usuario.contrasena) {
-      const hash = await bcrypt.hash(usuario.contrasena, 10);
-      usuario.contrasena = hash;
-    }
-  });
 
   return Usuario;
 };

@@ -7,7 +7,10 @@ const options = {
     openapi: "3.0.0",
     info: { title: "GeoAsistencia API", version: "1.0.0" },
   },
-  apis: ["./src/v1/routes/userRoutes.js", "./src/schemas/userSchema.js",
+  apis: [
+    "./src/v1/routes/userRoutes.js",
+    "./src/schemas/userSchema.js",
+    "./src/v1/routes/authRoutes.js",
     "./src/v1/routes/asignaturaRoutes.js", "./src/schemas/asignaturaSchema.js"
   ],
 };
