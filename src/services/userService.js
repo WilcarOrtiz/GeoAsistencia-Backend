@@ -112,17 +112,12 @@ async function cambiarEstadoUsuario(id_usuario) {
   }
 }
 
-async function crearUsuarioMasivamente(filePath) {
-  const resultados = {
-    creados: [],
-    errores: [],
-  };
-
+async function crearUsuarioMasivamente(datos) {
   try {
-    // Leer archivo Excel
-    const workbook = xlsx.readFile(filePath);
-    const hoja = workbook.Sheets[workbook.SheetNames[0]];
-    const datos = xlsx.utils.sheet_to_json(hoja);
+    const resultados = {
+      creados: [],
+      errores: [],
+    };
 
     for (const fila of datos) {
       try {
