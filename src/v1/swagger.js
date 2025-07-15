@@ -8,9 +8,10 @@ const options = {
     info: { title: "GeoAsistencia API", version: "1.0.0" },
   },
   apis: [
-    "./src/v1/routes/userRoutes.js",
-    "./src/schemas/userSchema.js",
+    "./src/v1/routes/docentesRoutes.js",
+    "./src/v1/routes/estudianteRoutes.js",
     "./src/v1/routes/authRoutes.js",
+    "./src/schemas/userSchema.js",
   ],
 };
 

@@ -1,14 +1,15 @@
 const express = require("express");
 const router = express.Router();
-const UserController = require("../../controllers/userController");
+const docenteController = require("../../controllers/docentesController");
+const { verify } = require("jsonwebtoken");
 
 /**
  * @openapi
- * /api/v1/usuarios:
+ * /docente/registrarDocente:
  *   post:
  *     tags:
- *       - Usuario
- *     summary: Crea un nuevo usuario en el sistema
+ *       - Docente
+ *     summary: Crea un nuevo docente en el sistema
  *
  *     requestBody:
  *       required: true
@@ -54,6 +55,6 @@ const UserController = require("../../controllers/userController");
  *                   type: string
  *                   example: "Error al crear usuario: descripción detallada"
  */
-router.post("/usuarios", UserController.registrarUsuario);
+router.post("/registrarDocente", docenteController.registrarUsuarioDocente);
 
 module.exports = router;

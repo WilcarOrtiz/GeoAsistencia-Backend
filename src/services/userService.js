@@ -1,5 +1,4 @@
 const { Usuario, Docente, Estudiante, Rol } = require("../models");
-
 const admin = require("../firebase/firebase");
 
 async function crearUsuario(data) {

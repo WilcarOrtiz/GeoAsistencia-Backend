@@ -7,7 +7,8 @@ const cors = require("cors");
 const { swaggerDocs: V1SwaggerDocs } = require("./v1/swagger");
 const { sequelize } = require("./models");
 
-const userRoutes = require("./v1/routes/userRoutes");
+const estudianteRoutes = require("./v1/routes/estudianteRoutes");
+const docenteRoutes = require("./v1/routes/docentesRoutes");
 const authRoutes = require("./v1/routes/authRoutes");
 
 async function main() {
@@ -17,14 +18,14 @@ async function main() {
     app.use(cookieParser());
     app.use(bodyParser.json());
 
-    app.use("/api/v1", userRoutes);
-    app.use("/api/v1", authRoutes);
+    app.use("/estudiante", estudianteRoutes);
+    app.use("/docente", docenteRoutes);
+    app.use("/auth", authRoutes);
 
     app.use(
       cors({
         credentials: true,
         origin: (origin, callback) => {
-          // Permitir cualquier origen durante desarrollo (lo restringimos más adelante)
           callback(null, true);
         },
       })
