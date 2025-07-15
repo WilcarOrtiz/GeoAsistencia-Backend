@@ -45,7 +45,26 @@ async function editarAsignatura(id_asignatura, datos) {
     }
 }
 
+async function habilitarAsignatura(id_asignatura, estado) {
+    try {
+        const existente = await Asignatura.findByPk(id_asignatura);
+        if (existente) {
+            await Asignatura.update({estado: estado}, {where: {id_asignatura}});
+            return {
+                success: true,
+                mensaje: estado ? "Asignatura habilitada correctamente." : "Asignatura deshabilitada correctamente.",
+            };
+        } else {
+            throw new Error("La asignatura no está registrada.");
+        }
+    } catch (error) {
+        throw new Error(`Error al editar la asignatura: ${error.message}`);
+    }
+    
+}
+
 module.exports = {
     crearAsignatura,
-    editarAsignatura
+    editarAsignatura,
+    habilitarAsignatura
 }

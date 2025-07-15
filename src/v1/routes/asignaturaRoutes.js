@@ -45,7 +45,6 @@ const asignaturaController = require("../../controllers/asignaturaController");
  */
 router.post("/registrar", asignaturaController.crearAsignatura);
 
-
 /**
  * @openapi
  * /asignatura/editar/{id_asignatura}:
@@ -81,4 +80,37 @@ router.post("/registrar", asignaturaController.crearAsignatura);
  *         description: Error del servidor
  */
 router.put("/editar/:id_asignatura", asignaturaController.editarAsignatura);
+
+/**
+ * @openapi
+ * /asignatura/habilitar/{id_asignatura}:
+ *   patch:
+ *     summary: Habilitar/Deshabilitar una asignatura
+ *     tags: [Asignaturas]
+ *     parameters:
+ *       - in: path
+ *         name: id_asignatura
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID de la asignatura a habilitar/deshabilitar
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               estado:
+ *                 type: boolean
+ *     responses:
+ *       200:
+ *         description: Asignatura habilitada/deshabilitada correctamente
+ *       404:
+ *         description: Asignatura no encontrada
+ *       500:
+ *         description: Error del servidor
+ */
+router.patch("/habilitar/:id_asignatura", asignaturaController.habilitarAsignatura);
+
 module.exports = router;

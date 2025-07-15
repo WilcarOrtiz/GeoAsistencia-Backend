@@ -31,7 +31,24 @@ async function editarAsignatura(req, res) {
     }
 }
 
+async function habilitarAsignatura(req, res) {
+    try {
+        const { id_asignatura } = req.params;
+        const { estado } = req.body;
+        const asignaturaHabilitada = await asignaturaService.habilitarAsignatura(id_asignatura, estado);
+        res.status(200).json(asignaturaHabilitada);
+    } catch (error) {
+        if (error.message.includes('no está registrada')) {
+            res.status(400).json({ error: error.message });
+        } else {
+            console.log(error);
+            res.status(500).json({ error: `Error interno del servidor: ${error}`});
+        }
+    }
+}
+
 module.exports = {
     crearAsignatura,
-    editarAsignatura
+    editarAsignatura,
+    habilitarAsignatura
 };
