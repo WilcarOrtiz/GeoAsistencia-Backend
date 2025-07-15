@@ -8,6 +8,7 @@ const { swaggerDocs: V1SwaggerDocs } = require("./v1/swagger");
 const { sequelize } = require("./models");
 
 const userRoutes = require("./v1/routes/userRoutes");
+const authRoutes = require("./v1/routes/authRoutes");
 
 async function main() {
   try {
@@ -17,6 +18,7 @@ async function main() {
     app.use(bodyParser.json());
 
     app.use("/api/v1", userRoutes);
+    app.use("/api/v1", authRoutes);
 
     app.use(
       cors({
