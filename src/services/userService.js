@@ -1,6 +1,8 @@
 const { Usuario, Docente, Estudiante, Rol } = require("../models");
 const { Op } = require("sequelize");
 const { obtenerModeloPorRol } = require("../utils/helpers/userHelper");
+const { existeCorreoEnFirebase } = require("../utils/helpers/firebaseHelper");
+
 const {
   crearUsuarioFirebase,
   actualizarUsuarioFirebase,
@@ -20,24 +22,34 @@ async function crearUsuario(data) {
       uuid_telefono,
     } = data;
 
-    // Validaciones
-    const existente = await Usuario.findOne({ where: { correo } });
-    if (existente) {
-      throw new Error("El correo ya está registrado.");
+    // VALIDACIONES
+    if (await existeCorreoEnFirebase(correo)) {
+      throw new Error("El correo ya está registrado en Firebase.");
     }
+
+    const existente = await Usuario.findOne({
+      where: {
+        [Op.or]: [{ correo: correo }, { identificacion: identificacion }],
+      },
+    });
+
+    if (existente) {
+      throw new Error("El correo o la identificación ya están registrados.");
+    }
+
     //  Buscar ID del rol
     const rol_supabase = await Rol.findOne({ where: { nombre: rol } });
 
-    // Crear usuario en Firebase
+    // CREACION EN FIREBASE
     const firebaseUser = await crearUsuarioFirebase({
       correo,
       contrasena,
       displayName: `${nombres} ${apellidos}`,
     });
-
     await asignarClaims(firebaseUser.uid, { rol, uuid_telefono });
-
     const id_usuario = firebaseUser.uid;
+
+    // CREACION EN BASE DE DATOS
     await Usuario.create({
       id_usuario: id_usuario,
       identificacion,
@@ -47,20 +59,21 @@ async function crearUsuario(data) {
       id_rol: rol_supabase.id_rol,
     });
 
-    if (rol_supabase.nombre === "DOCENTE") {
+    if (rol.toUpperCase() === "DOCENTE") {
       await Docente.create({
         id_docente: id_usuario,
-        uuid_telefono: uuid_telefono || null,
+        uuid_telefono: "",
         estado,
       });
-    } else if (rol_supabase.nombre === "ESTUDIANTE") {
+    } else if (rol.toUpperCase() === "ESTUDIANTE") {
       await Estudiante.create({
         id_estudiante: id_usuario,
-        uuid_telefono: uuid_telefono || null,
+        uuid_telefono: "",
         estado,
       });
     }
 
+    // RESPUESTA FINAL
     return {
       mensaje: "Usuario registrado correctamente.",
       idUsuario: id_usuario,
@@ -79,24 +92,16 @@ async function editarUsuario(data, id_usuario) {
       apellidos,
       correo,
       contrasena,
-      rol,
       estado,
       uuid_telefono,
     } = data;
 
-    // Buscar el usuario existente
+    // VALIDACIONES
     const usuario = await Usuario.findByPk(id_usuario);
     if (!usuario) {
       throw new Error("El usuario no existe.");
     }
 
-    // Guardar rol anterior
-    const rolAnterior = await Rol.findByPk(usuario.id_rol);
-    if (!rolAnterior) {
-      throw new Error("Rol anterior no válido.");
-    }
-
-    // Validar cambio de correo
     if (correo && correo !== usuario.correo) {
       const correoExistente = await Usuario.findOne({
         where: {
@@ -105,75 +110,51 @@ async function editarUsuario(data, id_usuario) {
         },
       });
       if (correoExistente) {
-        throw new Error("El nuevo correo ya está registrado por otro usuario.");
+        throw new Error(
+          "El nuevo correo ya está registrado por otro usuario en la BD."
+        );
+      }
+
+      if (await existeCorreoEnFirebase(correo)) {
+        throw new Error("El nuevo correo ya está registrado en Firebase.");
       }
     }
 
-    // Actualizar en Firebase usando helper
+    // ACTUALIZACIONES
     await actualizarUsuarioFirebase(id_usuario, {
       correo,
       contrasena,
       displayName: `${nombres} ${apellidos}`,
     });
 
-    // Asignar claims personalizados si llega uuid_telefono
-    if (uuid_telefono) {
-      await asignarClaims(id_usuario, {
-        uuid_telefono,
-        rol,
-      });
+    if (uuid_telefono && uuid_telefono !== registro.uuid_telefono) {
+      await asignarClaims(id_usuario, { uuid_telefono });
     }
 
-    // Buscar ID del nuevo rol
-    const rolNuevo = await Rol.findOne({ where: { nombre: rol } });
-    if (!rolNuevo) {
-      throw new Error("Nuevo rol no válido.");
-    }
-
-    // Actualizar tabla Usuario
     await usuario.update({
       identificacion,
       nombres,
       apellidos,
       correo,
       estado,
-      id_rol: rolNuevo.id_rol,
     });
 
-    // Cambios en tabla del rol
-    const ModeloAnterior = obtenerModeloPorRol(rolAnterior.nombre);
-    const ModeloNuevo = obtenerModeloPorRol(rol);
-    if (!ModeloAnterior || !ModeloNuevo) {
-      throw new Error("No se encontró modelo para uno de los roles.");
+    // Determinar modelo según el rol actual del usuario
+    const rolUsuario = await Rol.findByPk(usuario.id_rol);
+    const Modelo = obtenerModeloPorRol(rolUsuario.nombre);
+    if (!Modelo) {
+      throw new Error("No se encontró el modelo para el rol del usuario.");
     }
 
-    if (rolAnterior.nombre !== rol) {
-      await ModeloAnterior.destroy({
-        where: { [ModeloAnterior.primaryKeyAttribute]: id_usuario },
-      });
-    }
-
-    let registro = await ModeloNuevo.findByPk(id_usuario);
+    const registro = await Modelo.findByPk(id_usuario);
     if (registro) {
       await registro.update({
         uuid_telefono: uuid_telefono || null,
         estado,
       });
-    } else {
-      const dataModelo = {
-        uuid_telefono: uuid_telefono || null,
-        estado,
-      };
-
-      if (rol.toUpperCase() === "DOCENTE") {
-        dataModelo.id_docente = id_usuario;
-      } else if (rol.toUpperCase() === "ESTUDIANTE") {
-        dataModelo.id_estudiante = id_usuario;
-      }
-
-      await ModeloNuevo.create(dataModelo);
     }
 
+    //RESPUESTA FINAL
     return {
       mensaje: "Usuario actualizado correctamente.",
       idUsuario: id_usuario,

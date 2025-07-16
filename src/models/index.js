@@ -9,7 +9,7 @@ const Rol = require("./rolModel")(sequelize, DataTypes);
 const Asignatura = require("./asignaturaModel")(sequelize, DataTypes);
 const Grupo = require("./grupoModel")(sequelize, DataTypes);
 
-// Relaciones 
+// Relaciones
 Usuario.hasOne(Estudiante, { foreignKey: "id_estudiante" });
 Estudiante.belongsTo(Usuario, { foreignKey: "id_estudiante" });
 
@@ -27,12 +27,16 @@ Grupo.belongsTo(Docente, { foreignKey: "id_docente" });
 
 Estudiante.belongsToMany(Grupo, {
   through: "ESTUDIANTE_GRUPO",
-  foreignKey: "id_estudiante"
+  foreignKey: "id_estudiante",
+  otherKey: "id_grupo",
+  timestamps: false,
 });
 
 Grupo.belongsToMany(Estudiante, {
   through: "ESTUDIANTE_GRUPO",
-  foreignKey: "id_grupo"
+  foreignKey: "id_grupo",
+  otherKey: "id_estudiante",
+  timestamps: false,
 });
 
 
@@ -43,5 +47,5 @@ module.exports = {
   Estudiante,
   Rol,
   Asignatura,
-  Grupo
+  Grupo,
 };

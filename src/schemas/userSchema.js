@@ -38,3 +38,39 @@
  *           type: string
  *           example: "aabbccdd-1122-3344"
  */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     Usuario Edicion:
+ *       type: object
+ *       required:
+ *         - identificacion
+ *         - nombres
+ *         - apellidos
+ *         - correo
+ *         - contrasena
+ *       properties:
+ *         identificacion:
+ *           type: string
+ *           example: "1020304050"
+ *         nombres:
+ *           type: string
+ *           example: "Carlos Andrés"
+ *         apellidos:
+ *           type: string
+ *           example: "Pérez Gómez"
+ *         correo:
+ *           type: string
+ *           example: "carlos.perez@unicesar.edu.co"
+ *         contrasena:
+ *           type: string
+ *           example: "MiContraseñaSegura123"
+ *         estado:
+ *           type: boolean
+ *           example: true
+ *         uuid_telefono:
+ *           type: string
+ *           example: "aabbccdd-1122-3344"
+ */

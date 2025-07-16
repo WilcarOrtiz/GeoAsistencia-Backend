@@ -219,7 +219,7 @@ router.post(
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Usuario'
+ *             $ref: '#/components/schemas/Usuario Edicion'
  *     responses:
  *       200:
  *         description: Estudiante actualizado correctamente
@@ -263,7 +263,7 @@ router.post(
  */
 router.put(
   "/editarEstudiante/:id_usuario",
- 
+
   estudianteController.editarEstudiante
 );
 
@@ -303,6 +303,53 @@ router.put(
  *                   type: string
  *                   example: "Error al obtener usuarios"
  */
-router.get("/listar",  estudianteController.listarEstudiantes);
+router.get("/listar", estudianteController.listarEstudiantes);
 
+/**
+ * @openapi
+ * /estudiante/sinGrupo/{id_asignatura}:
+ *   get:
+ *     tags:
+ *       - Estudiante
+ *     summary: Obtiene todos los estudiantes que NO estan registrados en ningun grupo de esa asignatura
+ *     parameters:
+ *       - in: path
+ *         name: id_asignatura
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID de la asignatura
+ *     responses:
+ *       200:
+ *         description: Lista de estudiantes obtenida correctamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 usuarios:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Usuario'
+ *       400:
+ *         description: Error al obtener los estudiantes
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "Error al obtener usuarios"
+ */
+router.get(
+  "/sinGrupo/:id_asignatura",
+  estudianteController.obtenerEstudiantesNoAsignadosAGrupo
+);
 module.exports = router;
