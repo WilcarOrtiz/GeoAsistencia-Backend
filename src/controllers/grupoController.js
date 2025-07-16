@@ -9,12 +9,29 @@ async function crearGrupo(req, res) {
         return res.status(400).json({error: validaciones});
     }
     const grupo = await grupoService.crearGrupo(datos);
-    res.status(201).json(grupo);
+    return res.status(201).json(grupo);
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    return res.status(400).json({ error: error.message });
   }
+}
+
+async function editarGrupo(req, res) {
+  try {
+    const { id_grupo } = req.params;
+    const datos = req.body;
+    const validaciones = validarGrupo(datos);
+    if (validaciones.length > 0) {
+        return res.status(400).json({error: validaciones});
+    }
+    const grupo = await grupoService.editarGrupo(id_grupo, datos);
+    return res.status(200).json(grupo);
+  } catch (error) {
+    return res.status(400).json({ error: error.message });
+  }
+
 }
 
 module.exports = {
     crearGrupo,
+    editarGrupo
 }

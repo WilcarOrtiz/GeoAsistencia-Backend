@@ -13,7 +13,7 @@ function validarGrupo({ nombre, codigo, id_asignatura, estado_asistencia, id_doc
     errores.push("El ID de la asignatura debe ser un número válido mayor a 0.");
   }
 
-  if (typeof estado_asistencia !== "boolean" || !estado_asistencia) {
+  if (typeof estado_asistencia !== "boolean") {
     errores.push("El estado de asistencia debe ser un valor booleano (true o false).");
   }
 
@@ -22,7 +22,7 @@ function validarGrupo({ nombre, codigo, id_asignatura, estado_asistencia, id_doc
       errores.push("El ID del docente debe ser una cadena de texto no vacía.");
     }
   }
-
+  console.log(typeof estado_asistencia)
   return errores;
 }
 

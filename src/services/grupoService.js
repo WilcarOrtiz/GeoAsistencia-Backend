@@ -32,6 +32,39 @@ async function crearGrupo(datos) {
     }
 }
 
+async function editarGrupo(id_grupo, datos) {
+    try {
+        const { id_asignatura, id_docente } = datos;
+
+        const existente = await Grupo.findByPk(id_grupo);
+        if (!existente) {
+            throw new Error("El grupo no está registrado.");
+        }
+
+        const asignatura = await Asignatura.findByPk(id_asignatura);
+        if (!asignatura) {
+            throw new Error("La asignatura no existe.");
+        }
+
+        if (id_docente) {
+            const docente = await Docente.findByPk(id_docente);
+            if (!docente) {
+                throw new Error("El docente no existe.");
+            }
+        }
+
+        const grupoEditado = await Grupo.update(datos, { where: { id_grupo }});
+        return {
+            success: true,
+            mensaje: "Grupo editado correctamente.",
+            grupo: grupoEditado,
+        };
+    } catch (error) {
+        throw new Error(`Error al editar el grupo: ${error.message}`);
+    }
+}
+
 module.exports = {
     crearGrupo,
+    editarGrupo
 }
