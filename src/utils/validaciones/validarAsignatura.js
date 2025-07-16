@@ -9,7 +9,7 @@ function validarAsignatura({ nombre, codigo, estado }) {
     errores.push("El codigo debe ser una cadena de string no vacía.");
   }
 
-  if (typeof estado !== "boolean" || !estado) {
+  if (typeof estado !== "boolean" ) {
     errores.push("El estado debe ser verdadero o falso (Tipo booleano).");
   }
 

@@ -41,6 +41,26 @@ async function editarAsignatura(req, res) {
     }
 }
 
+async function consultarAsignaturas(req, res) {
+    try {
+        const asignaturasConsultadas = await asignaturaService.consultarAsignaturas();
+        return res.status(200).json(asignaturasConsultadas);
+    } catch (error) {
+        return res.status(500).json({ error: `Error interno del servidor: ${error}`});
+        
+    }
+}
+
+async function consultarAsignaturasActivas(req, res) {
+    try {
+        const asignaturasConsultadas = await asignaturaService.consultarAsignaturasActivas();
+        return res.status(200).json(asignaturasConsultadas);
+    } catch (error) {
+        return res.status(500).json({ error: `Error interno del servidor: ${error}`});
+        
+    }
+}
+
 async function habilitarAsignatura(req, res) {
     try {
         const { id_asignatura } = req.params;
@@ -62,36 +82,10 @@ async function habilitarAsignatura(req, res) {
     }
 }
 
-async function consultarAsignaturas(req, res) {
-    try {
-        const asignaturasConsultadas = await asignaturaService.consultarAsignaturas();
-        return res.status(200).json(asignaturasConsultadas);
-    } catch (error) {
-        return res.status(500).json({ error: `Error interno del servidor: ${error}`});
-        
-    }
-    
-}
-
-async function consultarAsignaturaPorId(params) {
-    
-}
-
-async function consultarAsignaturaPorIdDocente(params) {
-    
-}
-
-async function consultarAsignaturaPorIdEstudiante(params) {
-    
-}
-
-
 module.exports = {
     crearAsignatura,
     editarAsignatura,
     habilitarAsignatura,
     consultarAsignaturas,
-    consultarAsignaturaPorId,
-    consultarAsignaturaPorIdDocente,
-    consultarAsignaturaPorIdEstudiante,
+    consultarAsignaturasActivas
 };
