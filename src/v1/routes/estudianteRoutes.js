@@ -352,4 +352,100 @@ router.get(
   "/sinGrupo/:id_asignatura",
   estudianteController.obtenerEstudiantesNoAsignadosAGrupo
 );
+
+/**
+ * @openapi
+ * /estudiante/{id_estudiante}/gruposDeClase:
+ *   post:
+ *     summary: Asignar grupos de clase a un estudiante
+ *     description: Asigna uno o varios grupos a un estudiante en la tabla intermedia ESTUDIANTE_GRUPO, evitando duplicados y conflictos por asignaturas.
+ *     tags:
+ *       - Estudiante
+ *     parameters:
+ *       - name: id_estudiante
+ *         in: path
+ *         required: true
+ *         description: ID único del estudiante
+ *         schema:
+ *           type: string
+ *           example: "12345"
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               grupos:
+ *                 type: array
+ *                 description: Lista de IDs de grupos a asignar
+ *                 items:
+ *                   type: integer
+ *             example:
+ *               grupos: [14,18,4]
+ *     responses:
+ *       200:
+ *         description: Grupos asignados correctamente, mostrando cuáles fueron registrados y cuáles se omitieron con motivo.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 mensaje:
+ *                   type: string
+ *                   example: "Grupos asignados correctamente."
+ *                 registrados:
+ *                   type: array
+ *                   description: Lista de grupos que se registraron exitosamente
+ *                   items:
+ *                     type: string
+ *                   example: ["14", "18"]
+ *                 omitidos:
+ *                   type: array
+ *                   description: Lista de grupos que no se asignaron, con motivo
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id_grupo:
+ *                         type: string
+ *                         example: "4"
+ *                       motivo:
+ *                         type: string
+ *                         example: "Conflicto: ya seleccionó otro grupo de la misma asignatura"
+ *       400:
+ *         description: Error de validación
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "El estudiante no está registrado."
+ *       500:
+ *         description: Error interno del servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "Error al asignar grupos de clase: Detalle del error."
+ */
+
+router.post(
+  "/:id_estudiante/gruposDeClase",
+  estudianteController.asignarGruposDeClase
+);
+
 module.exports = router;

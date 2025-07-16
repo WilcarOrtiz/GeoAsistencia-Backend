@@ -1,23 +1,35 @@
 module.exports = (sequelize, DataTypes) => {
-  const GrupoEstudiante = sequelize.define(
-    "GrupoEstudiante",
+  const EstudianteGrupo = sequelize.define(
+    "EstudianteGrupo",
     {
+      id_estudiante: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        primaryKey: true,
+        references: {
+          model: "ESTUDIANTE", // Nombre de la tabla
+          key: "id_estudiante",
+        },
+        onUpdate: "CASCADE",
+        onDelete: "CASCADE",
+      },
       id_grupo: {
         type: DataTypes.INTEGER,
         allowNull: false,
-        references: { model: "grupos", key: "id" },
+        primaryKey: true,
+        references: {
+          model: "GRUPO", // Nombre de la tabla
+          key: "id_grupo",
+        },
+        onUpdate: "CASCADE",
+        onDelete: "CASCADE",
       },
-      id_estudiante: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        references: { model: "estudiantes", key: "id" },
-      }
     },
     {
-      tableName: "grupo_estudiante",
+      tableName: "ESTUDIANTE_GRUPO",
       timestamps: false,
     }
   );
 
-  return GrupoEstudiante;
+  return EstudianteGrupo;
 };
