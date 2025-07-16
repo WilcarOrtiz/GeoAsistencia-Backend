@@ -18,8 +18,8 @@ function validarGrupo({ nombre, codigo, id_asignatura, estado_asistencia, id_doc
   }
 
   if (id_docente !== undefined && id_docente !== null && id_docente !== "") {
-    if (typeof id_docente !== "number" || id_docente <= 0) {
-      errores.push("El ID del docente debe ser un número válido mayor a 0.");
+    if (typeof id_docente !== "string") {
+      errores.push("El ID del docente debe ser una cadena de texto no vacía.");
     }
   }
 
