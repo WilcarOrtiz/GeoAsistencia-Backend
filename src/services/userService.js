@@ -1,5 +1,4 @@
 const { Usuario, Docente, Estudiante, Rol } = require("../models");
-const admin = require("../firebase/firebase");
 const { Op } = require("sequelize");
 const { obtenerModeloPorRol } = require("../utils/helpers/userHelper");
 const {
@@ -48,13 +47,13 @@ async function crearUsuario(data) {
       id_rol: rol_supabase.id_rol,
     });
 
-    if (rol === "DOCENTE") {
+    if (rol_supabase.nombre === "DOCENTE") {
       await Docente.create({
         id_docente: id_usuario,
         uuid_telefono: uuid_telefono || null,
         estado,
       });
-    } else if (rol === "ESTUDIANTE") {
+    } else if (rol_supabase.nombre === "ESTUDIANTE") {
       await Estudiante.create({
         id_estudiante: id_usuario,
         uuid_telefono: uuid_telefono || null,

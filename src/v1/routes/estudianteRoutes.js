@@ -57,7 +57,7 @@ const { verifyToken } = require("../../middlewares/verifyToken");
  */
 router.post(
   "/registrarEstudiante",
-  verifyToken,
+
   estudianteController.registrarUsuarioEstudiante
 );
 
@@ -108,7 +108,7 @@ router.post(
  */
 router.put(
   "/cambiarEstado/:id_usuario",
-  verifyToken,
+
   estudianteController.habilitarDeshabiliarEstudiante
 );
 
@@ -196,7 +196,6 @@ router.put(
  */
 router.post(
   "/cargaMasivaEstudiante",
-  verifyToken,
   upload.single("archivo"),
   estudianteController.crearEstudianteMasivamente
 );
@@ -264,7 +263,7 @@ router.post(
  */
 router.put(
   "/editarEstudiante/:id_usuario",
-  verifyToken,
+ 
   estudianteController.editarEstudiante
 );
 
@@ -304,6 +303,6 @@ router.put(
  *                   type: string
  *                   example: "Error al obtener usuarios"
  */
-router.get("/listar", verifyToken, estudianteController.listarEstudiantes);
+router.get("/listar",  estudianteController.listarEstudiantes);
 
 module.exports = router;
