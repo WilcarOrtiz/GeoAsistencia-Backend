@@ -22,4 +22,7 @@
  *         estado:
  *           type: boolean
  *           example: true
+ *         cantidad_grupos:
+ *           type: integer
+ *           example: 10
  */

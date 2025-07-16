@@ -1,4 +1,5 @@
 const { Asignatura } = require("../models");
+const { Sequelize } = require("sequelize");
 
 async function crearAsignatura(datos) {
     try {
@@ -29,9 +30,9 @@ async function editarAsignatura(id_asignatura, datos) {
         if (validaciones.length > 0) {
             throw new Error(validaciones.join(" "));
         }
-        const existente = await Asignatura.findByPk(id_asignatura);
-        if (existente) {
-            await Asignatura.update(datos, {where: {id_asignatura}});
+        const asignaturaExistente = await Asignatura.findByPk(id_asignatura);
+        if (asignaturaExistente) {
+            await asignaturaExistente.update(datos);
             return {
                 success: true,
                 mensaje: "Asignatura editada correctamente.",
@@ -46,9 +47,9 @@ async function editarAsignatura(id_asignatura, datos) {
 
 async function habilitarAsignatura(id_asignatura, estado) {
     try {
-        const existente = await Asignatura.findByPk(id_asignatura);
-        if (existente) {
-            await Asignatura.update({estado: estado}, {where: {id_asignatura}});
+        const asignaturaExistente = await Asignatura.findByPk(id_asignatura);
+        if (asignaturaExistente) {
+            await asignaturaExistente.update({estado: estado});
             return {
                 success: true,
                 mensaje: estado ? "Asignatura habilitada correctamente." : "Asignatura deshabilitada correctamente.",
@@ -63,17 +64,30 @@ async function habilitarAsignatura(id_asignatura, estado) {
 }
 
 async function consultarAsignaturas() {
-    try {
-        const asignaturas = await Asignatura.findAll();
-        return {
-                success: true,
-                mensaje: "Asignaturas consultadas correctamente.",
-                asignaturas: asignaturas
-        };
-    } catch (error) {
-        throw new Error(`Error al consultar las asignaturas: ${error.message}`);
-    }
+  try {
+    const asignaturas = await Asignatura.findAll({
+      attributes: {
+        include: [
+          [
+            Sequelize.literal(`(
+              SELECT COUNT(*) 
+              FROM "GRUPO" AS "grupos" 
+              WHERE "grupos"."id_asignatura" = "ASIGNATURA"."id_asignatura"
+            )`),
+            "cantidad_grupos"
+          ]
+        ]
+      }
+    });
 
+    return {
+      success: true,
+      mensaje: "Asignaturas consultadas correctamente.",
+      asignaturas: asignaturas,
+    };
+  } catch (error) {
+    throw new Error(`Error al consultar las asignaturas: ${error.message}`);
+  }
 }
 
 module.exports = {

@@ -1,5 +1,5 @@
 const asignaturaService = require("../services/asignaturaService");
-const validarAsignatura = require("../utils/validarAsignatura");
+const validarAsignatura = require("../utils/validaciones/validarAsignatura");
 
 async function crearAsignatura(req, res) {
     try {
@@ -73,15 +73,15 @@ async function consultarAsignaturas(req, res) {
     
 }
 
-async function consultarAsignaturaById(params) {
+async function consultarAsignaturaPorId(params) {
     
 }
 
-async function consultarAsignaturaByIdDocente(params) {
+async function consultarAsignaturaPorIdDocente(params) {
     
 }
 
-async function consultarAsignaturaByIdEstudiante(params) {
+async function consultarAsignaturaPorIdEstudiante(params) {
     
 }
 
@@ -91,7 +91,7 @@ module.exports = {
     editarAsignatura,
     habilitarAsignatura,
     consultarAsignaturas,
-    consultarAsignaturaById,
-    consultarAsignaturaByIdDocente,
-    consultarAsignaturaByIdEstudiante,
+    consultarAsignaturaPorId,
+    consultarAsignaturaPorIdDocente,
+    consultarAsignaturaPorIdEstudiante,
 };

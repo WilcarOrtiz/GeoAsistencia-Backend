@@ -31,7 +31,9 @@ const options = {
     "./src/v1/routes/asignaturaRoutes.js",
     "./src/schemas/asignaturaSchema.js",
     "./src/schemas/userSchema.js",
-    "./src/schemas/grupoSchema.js", "./src/v1/routes/grupoRoutes.js"
+    "./src/schemas/grupoSchema.js", "./src/v1/routes/grupoRoutes.js",
+    "./src/schemas/diaSchema.js",
+    "./src/schemas/horarioSchema.js"
   ],
 };
 

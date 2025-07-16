@@ -215,7 +215,7 @@ router.post(
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Usuario'
+ *             $ref: '#/components/schemas/Usuario Edicion'
  *     responses:
  *       200:
  *         description: Docente actualizado correctamente
@@ -296,6 +296,46 @@ router.put("/editarDocente/:id_usuario", docenteController.editarDocente);
  *                   example: "Error al obtener usuarios"
  */
 router.get("/listar", docenteController.listarDocentes);
+
+
+
+/**
+ * @openapi
+ * /docente/activos:
+ *   get:
+ *     tags:
+ *       - Docente
+ *     summary: Obtiene todos los docentes activos en el sistema
+ *     responses:
+ *       200:
+ *         description: Lista de docentes activos obtenida correctamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 usuarios:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Usuario'
+ *       400:
+ *         description: Error al obtener los docentes
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "Error al obtener usuarios"
+ */
+router.get("/activos", docenteController.docentesActivos);
 
 //asi queda la ruta que verifica toeken y rol
 //router.get("/listar", verifyToken, authorizeRoles("ESTUDIANTE"), docenteController.listarDocentes);
