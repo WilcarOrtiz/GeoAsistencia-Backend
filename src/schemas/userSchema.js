@@ -36,7 +36,7 @@
  *           example: true
  *         uuid_telefono:
  *           type: string
- *           example: "aabbccdd-1122-3344"
+ *           example:
  */
 
 /**

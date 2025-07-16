@@ -62,13 +62,13 @@ async function crearUsuario(data) {
     if (rol.toUpperCase() === "DOCENTE") {
       await Docente.create({
         id_docente: id_usuario,
-        uuid_telefono: "",
+        uuid_telefono: uuid_telefono ?? null,
         estado,
       });
     } else if (rol.toUpperCase() === "ESTUDIANTE") {
       await Estudiante.create({
         id_estudiante: id_usuario,
-        uuid_telefono: "",
+        uuid_telefono: uuid_telefono ?? null,
         estado,
       });
     }
@@ -80,6 +80,7 @@ async function crearUsuario(data) {
       id_rol: rol_supabase.id_rol,
     };
   } catch (error) {
+    console.error("Error al crear usuario:", error);
     throw new Error(`Error al crear usuario: ${error.message}`);
   }
 }
