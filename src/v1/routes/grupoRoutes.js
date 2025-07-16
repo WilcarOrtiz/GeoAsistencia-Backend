@@ -206,7 +206,6 @@ router.post("/registrar", grupoController.crearGrupo);
  *                   type: string
  *                   example: "Error interno del servidor: ..."
  */
-
 router.put("/editar/:id_grupo", grupoController.editarGrupo);
 
 /**
@@ -453,4 +452,60 @@ router.get('/asignatura/:id_asignatura/docente/:id_docente', grupoController.con
  *                   example: "Error interno del servidor: ..."
  */
 router.get('/asignatura/:id_asignatura', grupoController.consultarGruposPorAsignatura);
+
+/**
+ * @openapi
+ * /grupo/asignatura/{id_asignatura}/estudiante/{id_estudiante}:
+ *   get:
+ *     summary: Consultar grupos de una asignatura asociados a un estudiante
+ *     tags: [Grupos]
+ *     parameters:
+ *       - in: path
+ *         name: id_asignatura
+ *         required: true
+ *         schema:
+ *           type: integer
+ *       - in: path
+ *         name: id_estudiante
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Grupos consultados correctamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 mensaje:
+ *                   type: string
+ *                 grupos:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Grupo'
+ *       400:
+ *         description: Parámetros invalidos/faltantes
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: El grupo no está registrado.
+ *       500:
+ *         description: Error interno del servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Error interno del servidor: ..."
+ */
+router.get('/asignatura/:id_asignatura/estudiante/:id_estudiante', grupoController.consultarGruposPorEstudiante);
 module.exports = router;

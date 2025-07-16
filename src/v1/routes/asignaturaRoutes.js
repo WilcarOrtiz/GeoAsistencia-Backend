@@ -212,4 +212,40 @@ router.patch("/habilitar/:id_asignatura", asignaturaController.habilitarAsignatu
  */
 router.get("/", asignaturaController.consultarAsignaturas);
 
+/**
+ * @openapi
+ * /asignatura/activas:
+ *   get:
+ *     summary: Consultar todas las asignaturas activas
+ *     tags: [Asignaturas]
+ *     responses:
+ *       200:
+ *         description: Asignaturas consultadas correctamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 mensaje:
+ *                   type: string
+ *                   example: Asignaturas consultadas correctamente.
+ *                 asignaturas:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Asignatura'
+ *       500:
+ *         description: Error del servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Error interno del servidor: ..."
+ */
+router.get("/activas", asignaturaController.consultarAsignaturasActivas);
 module.exports = router;
