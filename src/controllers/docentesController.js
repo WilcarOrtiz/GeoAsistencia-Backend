@@ -1,4 +1,5 @@
 const usuarioController = require("./userController");
+const docenteService = require("../services/docenteService");
 
 async function registrarUsuarioDocente(req, res) {
   return usuarioController.registrarUsuario(req, res);
@@ -18,10 +19,27 @@ async function editarDocente(req, res) {
 
 const listarDocentes = usuarioController.obtenerUsuariosPorRol("DOCENTE");
 
+async function docentesActivos(req, res) {
+  try {
+    const resultado = await docenteService.docentesActivos();
+    res.status(200).json({
+      success: true,
+      message: resultado.mensaje,
+      docentes: resultado.docentes,
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      error: error.message,
+    });
+  }
+}
+
 module.exports = {
   registrarUsuarioDocente,
   habilitarDeshabiliarDocente,
   crearDocenteMasivamente,
   editarDocente,
   listarDocentes,
+  docentesActivos,
 };
