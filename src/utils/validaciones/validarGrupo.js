@@ -1,4 +1,4 @@
-function validarGrupo({ nombre, codigo, id_asignatura, estado_asistencia, id_docente }) {
+function validarGrupo({ nombre, codigo, id_asignatura, estado_asistencia, id_docente, horarios }) {
   const errores = [];
 
   if (!nombre || typeof nombre !== "string" || nombre.trim() === "") {
@@ -22,7 +22,15 @@ function validarGrupo({ nombre, codigo, id_asignatura, estado_asistencia, id_doc
       errores.push("El ID del docente debe ser una cadena de texto no vacía.");
     }
   }
-  console.log(typeof estado_asistencia)
+  
+  if (horarios !== undefined && horarios !== null && horarios != []) {
+    for (const horario of horarios) {
+      if (!horario.id_dia || !horario.hora_inicio || !horario.hora_fin) {
+        errores.push("Cada horario debe tener 'dia', 'hora_inicio' y 'hora_fin'.");
+      }
+    }
+  }
+
   return errores;
 }
 
