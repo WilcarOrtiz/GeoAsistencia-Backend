@@ -11,6 +11,7 @@ const estudianteRoutes = require("./v1/routes/estudianteRoutes");
 const docenteRoutes = require("./v1/routes/docentesRoutes");
 const authRoutes = require("./v1/routes/authRoutes");
 const asignaturaRoutes = require("./v1/routes/asignaturaRoutes");
+const grupoRoutes = require("./v1/routes/grupoRoutes");
 
 async function main() {
   try {
@@ -23,10 +24,11 @@ async function main() {
     app.use("/docente", docenteRoutes);
     app.use("/auth", authRoutes);
     app.use("/asignatura", asignaturaRoutes);
+    app.use("/grupo", grupoRoutes)
 
     app.use(
       cors({
-        credentials: true,
+        credentials: false,
         origin: (origin, callback) => {
           callback(null, true);
         },
