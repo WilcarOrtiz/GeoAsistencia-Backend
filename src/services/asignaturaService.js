@@ -107,7 +107,6 @@ async function habilitarAsignatura(id_asignatura, estado) {
 }
 
 
-
 module.exports = {
     crearAsignatura,
     editarAsignatura,

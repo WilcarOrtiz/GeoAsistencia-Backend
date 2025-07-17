@@ -1,4 +1,4 @@
-const { Grupo, Asignatura, Docente, GrupoHorario, Horario, Estudiante } = require("../models");
+const { Grupo, Asignatura, Docente, GrupoHorario, Horario, Estudiante, EstudianteGrupo, Usuario } = require("../models");
 const { validarExistencia, validarEstadoActivo } = require("../utils/validaciones/validarExistenciaModelo");
 const asociarHorariosAGrupo = require("../utils/helpers/asociarHorarios");
 const { Sequelize } = require("sequelize");
@@ -78,6 +78,41 @@ async function eliminarGrupo(id_grupo) {
         };
     } catch (error) {
         throw new Error(`Error al eliminar el grupo: ${error.message}`);
+    }
+}
+
+async function eliminarEstudianteDeGrupo(id_grupo, id_estudiante) {
+    try {
+        await validarExistencia(Grupo, id_grupo, "El grupo");
+        await validarExistencia(Estudiante, id_estudiante, "El estudiante");
+
+        await EstudianteGrupo.destroy({where: {id_grupo, id_estudiante}});
+        return {
+            success: true,
+            mensaje: "Estudiante eliminado del grupo correctamente.",
+        };
+    } catch (error) {
+        throw new Error(`Error al eliminar el estudiante del grupo: ${error.message}`);
+    }
+}
+
+async function trasladarEstudianteDeGrupo(id_grupo, id_estudiante, id_nuevo_grupo) {
+    try {
+        await validarExistencia(Grupo, id_grupo, "El grupo");
+        await validarExistencia(Grupo, id_nuevo_grupo, "El grupo para trasladar");
+        await validarExistencia(Estudiante, id_estudiante, "El estudiante");
+
+        await EstudianteGrupo.destroy({where: {id_grupo, id_estudiante}});
+        await EstudianteGrupo.create({
+            id_grupo: id_nuevo_grupo,
+            id_estudiante: id_estudiante
+        })
+        return {
+            success: true,
+            mensaje: "Estudiante trasladado al nuevo grupo correctamente.",
+        };
+    } catch (error) {
+        throw new Error(`Error al trasladar el estudiante al nuevo grupo: ${error.message}`);
     }
 }
 
@@ -204,7 +239,39 @@ async function consultarGruposPorEstudiante(id_asignatura, id_estudiante) {
     return {
         success: true,
         mensaje: "Grupos consultados correctamente.",
-        grupos,
+        grupos: grupos,
+    };
+  } catch (error) {
+    throw new Error(`Error al consultar los grupos: ${error.message}`);
+  }
+}
+
+async function consultarEstudiantesPorId(id_grupo) {
+  try {
+    await validarExistencia(Grupo,id_grupo, "El grupo");
+
+    const estudiantes = await Grupo.findByPk(id_grupo,{
+        include: [
+                {
+                    model: Estudiante,
+                    attributes: ["estado"], 
+                    through: { attributes: [] },
+                    include: [
+                        {
+                        model: Usuario,
+                        attributes: ["identificacion", "nombres", "apellidos", "correo"], 
+                        }
+                    ]
+                },
+            ],
+            group: ["GRUPO.id_grupo", "ESTUDIANTEs.id_estudiante", "ESTUDIANTEs->USUARIO.id_usuario"],
+            subQuery: false,
+        });
+
+    return {
+        success: true,
+        mensaje: "Estudiantes consultados correctamente.",
+        estudiantes: estudiantes,
     };
   } catch (error) {
     throw new Error(`Error al consultar los grupos: ${error.message}`);
@@ -215,8 +282,11 @@ module.exports = {
     crearGrupo,
     editarGrupo,
     eliminarGrupo,
+    eliminarEstudianteDeGrupo,
+    trasladarEstudianteDeGrupo,
     consultarGrupoPorId,
     consultarGruposPorDocente,
     consultarGruposPorAsignatura,
-    consultarGruposPorEstudiante
+    consultarGruposPorEstudiante,
+    consultarEstudiantesPorId    
 }

@@ -44,6 +44,28 @@ async function eliminarGrupo(req, res) {
   }
 }
 
+async function eliminarEstudianteDeGrupo(req, res) {
+  try {
+    const { id_grupo, id_estudiante } = req.params;
+    if (!validarParametros(req, res, ["id_grupo","id_estudiante"])) return;
+    const estudianteEliminadoGrupo = await grupoService.eliminarEstudianteDeGrupo(id_grupo, id_estudiante);
+    return res.status(200).json(estudianteEliminadoGrupo);
+  } catch (error) {
+    return manejarError(res, error);
+  }
+}
+
+async function trasladarEstudianteDeGrupo(req, res) {
+  try {
+    const { id_grupo, id_estudiante, id_nuevo_grupo  } = req.params;
+    if (!validarParametros(req, res, ["id_grupo","id_estudiante","id_nuevo_grupo"])) return;
+    const estudianteTrasladoGrupo = await grupoService.trasladarEstudianteDeGrupo(id_grupo, id_estudiante, id_nuevo_grupo);
+    return res.status(200).json(estudianteTrasladoGrupo);
+  } catch (error) {
+    return manejarError(res, error);
+  }
+}
+
 async function consultarGrupoPorId(req, res) {
   try {
     const { id_grupo } = req.params;
@@ -88,12 +110,26 @@ async function consultarGruposPorEstudiante(req, res) {
   }
 }
 
+async function consultarEstudiantesPorId(req, res) {
+  try {
+    const { id_grupo } = req.params;
+    if (!validarParametros(req, res, ["id_grupo"])) return;
+    const estudiantesConsultados = await grupoService.consultarEstudiantesPorId(id_grupo);
+    return res.status(200).json(estudiantesConsultados);
+  } catch (error) {
+    return manejarError(res, error);
+  }
+}
+
 module.exports = {
     crearGrupo,
     editarGrupo,
     eliminarGrupo,
+    eliminarEstudianteDeGrupo,
+    trasladarEstudianteDeGrupo,
     consultarGrupoPorId,
     consultarGruposPorDocente,
     consultarGruposPorAsignatura,
-    consultarGruposPorEstudiante
+    consultarGruposPorEstudiante,
+    consultarEstudiantesPorId   
 }
