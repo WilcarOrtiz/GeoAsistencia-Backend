@@ -447,5 +447,104 @@ router.post(
   "/:id_estudiante/gruposDeClase",
   estudianteController.asignarGruposDeClase
 );
+/**
+ * @openapi
+ * /estudiante/grupos:
+ *   get:
+ *     summary: Consultar estudiantes con sus grupos y asignaturas
+ *     description: Retorna todos los estudiantes con la lista de grupos a los que pertenecen y las asignaturas asociadas. Si se envía un ID de estudiante por query param, devuelve únicamente la información de ese estudiante.
+ *     tags:
+ *       - Estudiante
+ *     parameters:
+ *       - name: id_estudiante
+ *         in: query
+ *         required: false
+ *         description: ID único del estudiante (opcional)
+ *         schema:
+ *           type: string
+ *           example: "12345"
+ *     responses:
+ *       200:
+ *         description: Lista de estudiantes con sus grupos y asignaturas
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 mensaje:
+ *                   type: string
+ *                   example: "Lista de estudiantes con sus grupos y asignaturas."
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                         example: "E001"
+ *                       nombreCompleto:
+ *                         type: string
+ *                         example: "Juan Pérez"
+ *                       correo:
+ *                         type: string
+ *                         example: "juan.perez@email.com"
+ *                       uuidTelefono:
+ *                         type: string
+ *                         example: "aabbccdd-1122-3344"
+ *                       estado:
+ *                         type: boolean
+ *                         example: true
+ *                       grupos:
+ *                         type: array
+ *                         items:
+ *                           type: object
+ *                           properties:
+ *                             id:
+ *                               type: integer
+ *                               example: 5
+ *                             nombre:
+ *                               type: string
+ *                               example: "Grupo A"
+ *                             asignatura:
+ *                               type: object
+ *                               properties:
+ *                                 id:
+ *                                   type: integer
+ *                                   example: 10
+ *                                 nombre:
+ *                                   type: string
+ *                                   example: "Programación I"
+ *       400:
+ *         description: Error en la consulta
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "Error al obtener estudiantes."
+ *       500:
+ *         description: Error interno del servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "Error inesperado en el servidor."
+ */
+
+router.get("/grupos", estudianteController.consultarEstudiantesConGrupos);
 
 module.exports = router;

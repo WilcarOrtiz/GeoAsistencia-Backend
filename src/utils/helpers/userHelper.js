@@ -1,5 +1,6 @@
 // utils/modeloPorRol.js
-const { Docente, Estudiante } = require("../../models");
+const { Usuario, Docente, Estudiante, Rol } = require("../../models");
+const { Op } = require("sequelize");
 
 function obtenerModeloPorRol(rolNombre) {
   const modelos = {
@@ -15,4 +16,6 @@ function obtenerModeloPorRol(rolNombre) {
   return modelo;
 }
 
-module.exports = { obtenerModeloPorRol };
+module.exports = {
+  obtenerModeloPorRol,
+};

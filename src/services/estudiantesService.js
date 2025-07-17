@@ -1,6 +1,9 @@
 const { Estudiante, Usuario, Grupo, EstudianteGrupo } = require("../models");
 const { Op } = require("sequelize");
 const sequelize = require("../database/supabase/db");
+const {
+  formatEstudiantesConGrupos,
+} = require("../utils/helpers/estudianteHelper");
 
 async function obtenerEstudiantesNoAsignadosAGrupo(id_asignatura) {
   //Consultar estudiantes que no pertenezcan a un grupo de la asignatura
@@ -39,10 +42,6 @@ async function obtenerEstudiantesNoAsignadosAGrupo(id_asignatura) {
 async function asignarGruposDeClase(id_estudiante, grupos) {
   const transaction = await sequelize.transaction();
   try {
-    if (!Array.isArray(grupos) || grupos.length === 0) {
-      throw new Error("Debe enviar al menos un grupo.");
-    }
-
     // 1. Validar existencia del estudiante
     const estudiante = await Estudiante.findByPk(id_estudiante);
     if (!estudiante) {
@@ -137,7 +136,53 @@ async function asignarGruposDeClase(id_estudiante, grupos) {
   }
 }
 
+async function consultarEstudiantesConGrupos(id_estudiante) {
+  try {
+    const whereCondition = id_estudiante ? { id_estudiante } : {};
+
+    const estudiantes = await Estudiante.findAll({
+      where: whereCondition,
+      include: [
+        {
+          model: Usuario,
+          attributes: ["nombres", "apellidos", "correo"],
+        },
+        {
+          model: Grupo,
+          attributes: ["id_grupo", "nombre"],
+          include: [
+            {
+              model: require("../models").Asignatura,
+              attributes: ["id_asignatura", "nombre"],
+            },
+          ],
+          through: { attributes: [] },
+        },
+      ],
+    });
+
+    if (id_estudiante && estudiantes.length === 0) {
+      throw new Error("El estudiante no existe.");
+    }
+
+    const data = formatEstudiantesConGrupos(estudiantes);
+
+    return {
+      success: true,
+      mensaje: id_estudiante
+        ? "Detalle del estudiante con grupos y asignaturas."
+        : "Lista de estudiantes con sus grupos y asignaturas.",
+      data,
+    };
+  } catch (error) {
+    throw new Error(
+      `Error al obtener estudiantes con grupos: ${error.message}`
+    );
+  }
+}
+
 module.exports = {
   obtenerEstudiantesNoAsignadosAGrupo,
   asignarGruposDeClase,
+  consultarEstudiantesConGrupos,
 };

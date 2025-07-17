@@ -63,6 +63,20 @@ async function asignarGruposDeClase(req, res) {
     });
   }
 }
+
+async function consultarEstudiantesConGrupos(req, res) {
+  try {
+    const { id_estudiante } = req.query;
+    console.log("ID recibido:", id_estudiante);
+    const data = await estudianteService.consultarEstudiantesConGrupos(
+      id_estudiante || null
+    );
+    res.status(200).json(data);
+  } catch (error) {
+    res.status(400).json({ success: false, error: error.message });
+  }
+}
+
 module.exports = {
   registrarUsuarioEstudiante,
   habilitarDeshabiliarEstudiante,
@@ -71,4 +85,5 @@ module.exports = {
   listarEstudiantes,
   obtenerEstudiantesNoAsignadosAGrupo,
   asignarGruposDeClase,
+  consultarEstudiantesConGrupos,
 };
