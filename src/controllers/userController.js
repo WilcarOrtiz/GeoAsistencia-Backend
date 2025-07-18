@@ -39,12 +39,6 @@ async function cambiarEstadoUsuario(req, res) {
 async function crearUsuarioMasivamente(req, res) {
   try {
     const archivo = req.file;
-    if (!archivo) {
-      return res
-        .status(400)
-        .json({ success: false, error: "No se envió archivo Excel." });
-    }
-
     const workbook = xlsx.read(archivo.buffer, { type: "buffer" });
     const hoja = workbook.Sheets[workbook.SheetNames[0]];
     const datos = xlsx.utils.sheet_to_json(hoja);
@@ -62,9 +56,8 @@ async function crearUsuarioMasivamente(req, res) {
 
 async function editarUsuario(req, res) {
   try {
-    const id_usuario = req.params.id_usuario;
+    const { id_usuario } = req.params;
     const datosActualizados = req.body;
-
     const resultado = await userService.editarUsuario(
       datosActualizados,
       id_usuario
@@ -86,7 +79,11 @@ async function editarUsuario(req, res) {
 function obtenerUsuariosPorRol(nombreRol) {
   return async function (req, res) {
     try {
-      const usuarios = await userService.obtenerTodosLosUsuarios(nombreRol);
+      const { id_usuario } = req.query;
+      const usuarios = await userService.obtenerUsuarios(
+        nombreRol,
+        id_usuario || null
+      );
       res.status(200).json({
         success: true,
         usuarios,
