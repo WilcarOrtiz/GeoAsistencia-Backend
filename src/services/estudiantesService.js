@@ -1,13 +1,25 @@
-const { Estudiante, Usuario, Grupo, EstudianteGrupo } = require("../models");
+const {
+  Estudiante,
+  Usuario,
+  Grupo,
+  EstudianteGrupo,
+  Asignatura,
+} = require("../models");
 const { Op } = require("sequelize");
 const sequelize = require("../database/supabase/db");
 const {
-  formatEstudiantesConGrupos,
-} = require("../utils/helpers/estudianteHelper");
+  formatearEstudiantesConAsignaturasYGrupos,
+} = require("../utils/helpers/formatearUsuarioConAsignaturasYGrupos");
+
+const { encontrarRegistroEnModelo } = require("../utils/helpers/userHelper");
 
 async function obtenerEstudiantesNoAsignadosAGrupo(id_asignatura) {
   //Consultar estudiantes que no pertenezcan a un grupo de la asignatura
   try {
+    if (!(await encontrarRegistroEnModelo(Asignatura, id_asignatura))) {
+      throw new Error("La asignatura no existe.");
+    }
+
     const estudiantesSinGrupo = await Estudiante.findAll({
       include: [
         {
@@ -27,7 +39,6 @@ async function obtenerEstudiantesNoAsignadosAGrupo(id_asignatura) {
       },
     });
 
-    //EN ESTA PUEDO CAMBIAR SI PONGO EL ALIAS EN GRUPO PARA UTILIZAR EL MODELO, PERO DEBO PREGUNTARLE A KENDRYS SI ESO LE AFECTE SU CODIGO
     return {
       mensaje: "Estudiantes no asignados a un grupo de la asignatura.",
       estudiantes: estudiantesSinGrupo,
@@ -43,8 +54,7 @@ async function asignarGruposDeClase(id_estudiante, grupos) {
   const transaction = await sequelize.transaction();
   try {
     // 1. Validar existencia del estudiante
-    const estudiante = await Estudiante.findByPk(id_estudiante);
-    if (!estudiante) {
+    if (!(await encontrarRegistroEnModelo(Estudiante, id_estudiante))) {
       throw new Error("El estudiante no existe.");
     }
 
@@ -136,7 +146,7 @@ async function asignarGruposDeClase(id_estudiante, grupos) {
   }
 }
 
-async function consultarEstudiantesConGrupos(id_estudiante) {
+async function consultarEstudiantesConSusGrupos(id_estudiante) {
   try {
     const whereCondition = id_estudiante ? { id_estudiante } : {};
 
@@ -149,10 +159,10 @@ async function consultarEstudiantesConGrupos(id_estudiante) {
         },
         {
           model: Grupo,
-          attributes: ["id_grupo", "nombre"],
+          attributes: ["id_grupo", "nombre","codigo"],
           include: [
             {
-              model: require("../models").Asignatura,
+              model: Asignatura,
               attributes: ["id_asignatura", "nombre"],
             },
           ],
@@ -165,7 +175,7 @@ async function consultarEstudiantesConGrupos(id_estudiante) {
       throw new Error("El estudiante no existe.");
     }
 
-    const data = formatEstudiantesConGrupos(estudiantes);
+    const data = formatearEstudiantesConAsignaturasYGrupos(estudiantes);
 
     return {
       success: true,
@@ -184,5 +194,5 @@ async function consultarEstudiantesConGrupos(id_estudiante) {
 module.exports = {
   obtenerEstudiantesNoAsignadosAGrupo,
   asignarGruposDeClase,
-  consultarEstudiantesConGrupos,
+  consultarEstudiantesConSusGrupos,
 };

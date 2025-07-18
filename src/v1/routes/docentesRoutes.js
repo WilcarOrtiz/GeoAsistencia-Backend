@@ -4,6 +4,11 @@ const docenteController = require("../../controllers/docentesController");
 const upload = require("../../middlewares/uploadMiddleware");
 const { verifyToken } = require("../../middlewares/verifyToken");
 const { authorizeRoles } = require("../../middlewares/authorizeRoles");
+const {
+  validarCamposUsuario,
+  validarArchivoExcel,
+  validarIdObligatorio,
+} = require("../../middlewares/Usuario/validarUsuario");
 
 /**
  * @openapi
@@ -34,7 +39,7 @@ const { authorizeRoles } = require("../../middlewares/authorizeRoles");
  *                   example: "d7e5d8f2-5f7c-4d85-b9a1-1d1cdeae2e23"
  *                 rol:
  *                   type: string
- *                   example: "ESTUDIANTE"
+ *                   example: "DOCENTE"
  *       400:
  *         description: Error en la solicitud (por ejemplo, correo ya existe)
  *         content:
@@ -56,7 +61,11 @@ const { authorizeRoles } = require("../../middlewares/authorizeRoles");
  *                   type: string
  *                   example: "Error al crear usuario: descripción detallada"
  */
-router.post("/registrarDocente", docenteController.registrarUsuarioDocente);
+router.post(
+  "/registrarDocente",
+  validarCamposUsuario,
+  docenteController.registrarUsuarioDocente
+);
 
 /**
  * @openapi
@@ -105,6 +114,7 @@ router.post("/registrarDocente", docenteController.registrarUsuarioDocente);
  */
 router.put(
   "/cambiarEstado/:id_usuario",
+  validarIdObligatorio("id_usuario"),
   docenteController.habilitarDeshabiliarDocente
 );
 
@@ -193,6 +203,7 @@ router.put(
 router.post(
   "/cargaMasivaDocentes",
   upload.single("archivo"),
+  validarArchivoExcel,
   docenteController.crearDocenteMasivamente
 );
 
@@ -257,7 +268,11 @@ router.post(
  *                   type: string
  *                   example: "Error al editar usuario: descripción detallada"
  */
-router.put("/editarDocente/:id_usuario", docenteController.editarDocente);
+router.put(
+  "/editarDocente/:id_usuario",
+  validarIdObligatorio("id_usuario"),
+  docenteController.editarDocente
+);
 
 /**
  * @openapi
@@ -265,10 +280,18 @@ router.put("/editarDocente/:id_usuario", docenteController.editarDocente);
  *   get:
  *     tags:
  *       - Docente
- *     summary: Obtiene todos los docentes registrados en el sistema
+ *     summary: Obtiene la informacion de uno o todos los docentes registrados en el sistema
+ *     parameters:
+ *       - name: id_usuario
+ *         in: query
+ *         required: false
+ *         description: ID único del docente (opcional)
+ *         schema:
+ *           type: string
+ *           example: "12345"
  *     responses:
  *       200:
- *         description: Lista de estudiantes obtenida correctamente
+ *         description: Informacion obtenida correctamente
  *         content:
  *           application/json:
  *             schema:
@@ -296,8 +319,6 @@ router.put("/editarDocente/:id_usuario", docenteController.editarDocente);
  *                   example: "Error al obtener usuarios"
  */
 router.get("/listar", docenteController.listarDocentes);
-
-
 
 /**
  * @openapi
@@ -337,7 +358,199 @@ router.get("/listar", docenteController.listarDocentes);
  */
 router.get("/activos", docenteController.docentesActivos);
 
-//asi queda la ruta que verifica toeken y rol
-//router.get("/listar", verifyToken, authorizeRoles("ESTUDIANTE"), docenteController.listarDocentes);
+/**
+ * @openapi
+ * /docente/{id_docente}/gruposDeClase:
+ *   post:
+ *     summary: Asignar grupos de clase a un docente
+ *     description: Asigna uno o varios grupos a un docente.
+ *     tags:
+ *       - Docente
+ *     parameters:
+ *       - name: id_docente
+ *         in: path
+ *         required: true
+ *         description: ID único del docente
+ *         schema:
+ *           type: string
+ *           example: "12345"
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               grupos:
+ *                 type: array
+ *                 description: Lista de IDs de grupos a asignar
+ *                 items:
+ *                   type: integer
+ *             example:
+ *               grupos: [14,18,4]
+ *     responses:
+ *       200:
+ *         description: Grupos asignados correctamente, mostrando cuáles fueron registrados y cuáles se omitieron con motivo.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 mensaje:
+ *                   type: string
+ *                   example: "Grupos asignados correctamente."
+ *                 registrados:
+ *                   type: array
+ *                   description: Lista de grupos que se registraron exitosamente
+ *                   items:
+ *                     type: string
+ *                   example: ["14", "18"]
+ *                 omitidos:
+ *                   type: array
+ *                   description: Lista de grupos que no se asignaron, con motivo
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id_grupo:
+ *                         type: string
+ *                         example: "4"
+ *                       motivo:
+ *                         type: string
+ *                         example: "Conflicto: ya seleccionó otro grupo de la misma asignatura"
+ *       400:
+ *         description: Error de validación
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "El docente no está registrado."
+ *       500:
+ *         description: Error interno del servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "Error al asignar grupos de clase: Detalle del error."
+ */
+
+router.post(
+  "/:id_docente/gruposDeClase",
+  docenteController.asignarGruposDeClase
+);
+
+/**
+ * @openapi
+ * /docente/grupos:
+ *   get:
+ *     summary: Consultar docentes con sus grupos y asignaturas
+ *     description: Retorna todos los docentes con la lista de grupos a los que pertenecen y las asignaturas asociadas. Si se envía un ID de docente por query param, devuelve únicamente la información de ese docente.
+ *     tags:
+ *       - Docente
+ *     parameters:
+ *       - name: id_docente
+ *         in: query
+ *         required: false
+ *         description: ID único del docente (opcional)
+ *         schema:
+ *           type: string
+ *           example: "12345"
+ *     responses:
+ *       200:
+ *         description: Lista de docentes con sus grupos y asignaturas
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 mensaje:
+ *                   type: string
+ *                   example: "Lista de docentes con sus grupos y asignaturas."
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                         example: "E001"
+ *                       nombreCompleto:
+ *                         type: string
+ *                         example: "Juan Pérez"
+ *                       correo:
+ *                         type: string
+ *                         example: "juan.perez@email.com"
+ *                       uuidTelefono:
+ *                         type: string
+ *                         example: "aabbccdd-1122-3344"
+ *                       estado:
+ *                         type: boolean
+ *                         example: true
+ *                       grupos:
+ *                         type: array
+ *                         items:
+ *                           type: object
+ *                           properties:
+ *                             id:
+ *                               type: integer
+ *                               example: 5
+ *                             nombre:
+ *                               type: string
+ *                               example: "Grupo A"
+ *                             asignatura:
+ *                               type: object
+ *                               properties:
+ *                                 id:
+ *                                   type: integer
+ *                                   example: 10
+ *                                 nombre:
+ *                                   type: string
+ *                                   example: "Programación I"
+ *       400:
+ *         description: Error en la consulta
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "Error al obtener docentes."
+ *       500:
+ *         description: Error interno del servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "Error inesperado en el servidor."
+ */
+
+router.get("/grupos", docenteController.consultarDocentesConSusGrupos);
 
 module.exports = router;

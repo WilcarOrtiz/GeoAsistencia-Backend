@@ -64,11 +64,10 @@ async function asignarGruposDeClase(req, res) {
   }
 }
 
-async function consultarEstudiantesConGrupos(req, res) {
+async function consultarEstudiantesConSusGrupos(req, res) {
   try {
     const { id_estudiante } = req.query;
-    console.log("ID recibido:", id_estudiante);
-    const data = await estudianteService.consultarEstudiantesConGrupos(
+    const data = await estudianteService.consultarEstudiantesConSusGrupos(
       id_estudiante || null
     );
     res.status(200).json(data);
@@ -85,5 +84,5 @@ module.exports = {
   listarEstudiantes,
   obtenerEstudiantesNoAsignadosAGrupo,
   asignarGruposDeClase,
-  consultarEstudiantesConGrupos,
+  consultarEstudiantesConSusGrupos,
 };

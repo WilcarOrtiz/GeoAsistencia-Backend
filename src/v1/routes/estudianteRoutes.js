@@ -2,6 +2,12 @@ const express = require("express");
 const router = express.Router();
 const estudianteController = require("../../controllers/estudiantesController");
 const upload = require("../../middlewares/uploadMiddleware");
+const {
+  validarCamposUsuario,
+  validarArchivoExcel,
+  validarIdObligatorio,
+} = require("../../middlewares/Usuario/validarUsuario");
+
 const { verifyToken } = require("../../middlewares/verifyToken");
 
 /**
@@ -57,7 +63,7 @@ const { verifyToken } = require("../../middlewares/verifyToken");
  */
 router.post(
   "/registrarEstudiante",
-
+  validarCamposUsuario,
   estudianteController.registrarUsuarioEstudiante
 );
 
@@ -108,7 +114,7 @@ router.post(
  */
 router.put(
   "/cambiarEstado/:id_usuario",
-
+  validarIdObligatorio("id_usuario"),
   estudianteController.habilitarDeshabiliarEstudiante
 );
 
@@ -197,6 +203,7 @@ router.put(
 router.post(
   "/cargaMasivaEstudiante",
   upload.single("archivo"),
+  validarArchivoExcel,
   estudianteController.crearEstudianteMasivamente
 );
 
@@ -263,7 +270,7 @@ router.post(
  */
 router.put(
   "/editarEstudiante/:id_usuario",
-
+  validarIdObligatorio("id_usuario"),
   estudianteController.editarEstudiante
 );
 
@@ -273,7 +280,15 @@ router.put(
  *   get:
  *     tags:
  *       - Estudiante
- *     summary: Obtiene todos los estudiantes registrados en el sistema
+ *     summary: Obtiene la informacion de uno o todos los estudiantes registrados en el sistema
+ *     parameters:
+ *       - name: id_usuario
+ *         in: query
+ *         required: false
+ *         description: ID único del estudiante (opcional)
+ *         schema:
+ *           type: string
+ *           example: "12345"
  *     responses:
  *       200:
  *         description: Lista de estudiantes obtenida correctamente
@@ -350,6 +365,7 @@ router.get("/listar", estudianteController.listarEstudiantes);
  */
 router.get(
   "/sinGrupo/:id_asignatura",
+  validarIdObligatorio("id_asignatura"),
   estudianteController.obtenerEstudiantesNoAsignadosAGrupo
 );
 
@@ -447,6 +463,8 @@ router.post(
   "/:id_estudiante/gruposDeClase",
   estudianteController.asignarGruposDeClase
 );
+
+
 /**
  * @openapi
  * /estudiante/grupos:
@@ -545,6 +563,6 @@ router.post(
  *                   example: "Error inesperado en el servidor."
  */
 
-router.get("/grupos", estudianteController.consultarEstudiantesConGrupos);
+router.get("/grupos", estudianteController.consultarEstudiantesConSusGrupos);
 
 module.exports = router;
