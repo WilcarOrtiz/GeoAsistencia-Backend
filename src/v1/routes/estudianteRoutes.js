@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const estudianteController = require("../../controllers/estudiantesController");
 const upload = require("../../middlewares/uploadMiddleware");
+
 const {
   validarCamposUsuario,
   validarArchivoExcel,
@@ -461,6 +462,7 @@ router.get(
 
 router.post(
   "/:id_estudiante/gruposDeClase",
+  validarIdObligatorio("id_estudiante"),
   estudianteController.asignarGruposDeClase
 );
 

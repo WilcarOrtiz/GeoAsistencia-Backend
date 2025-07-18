@@ -260,6 +260,124 @@ router.delete("/eliminar/:id_grupo", grupoController.eliminarGrupo);
 
 /**
  * @openapi
+ * /grupo/{id_grupo}/estudiante/{id_estudiante}:
+ *   delete:
+ *     summary: Eliminar un estudiante de un grupo
+ *     tags: [Grupos]
+ *     parameters:
+ *       - in: path
+ *         name: id_grupo
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID del grupo
+ *       - in: path
+ *         name: id_estudiante
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: ID del estudiante a eliminar del grupo
+ *     responses:
+ *       200:
+ *         description: Estudiante eliminado del grupo correctamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 mensaje:
+ *                   type: string
+ *                   example: Estudiante eliminado del grupo correctamente.
+ *       400:
+ *         description: Error de validación o grupo no encontrado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: El grupo no está registrado.
+ *       500:
+ *         description: Error interno del servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Error interno del servidor ...
+ */
+router.delete("/:id_grupo/estudiante/:id_estudiante", grupoController.eliminarEstudianteDeGrupo);
+
+/**
+ * @openapi
+ * /grupo/{id_grupo}/trasladar/{id_nuevo_grupo}/estudiante/{id_estudiante}:
+ *   put:
+ *     summary: Trasladar un estudiante de un grupo a otro grupo
+ *     tags: [Grupos]
+ *     parameters:
+ *       - in: path
+ *         name: id_grupo
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID del grupo
+ *       - in: path
+ *         name: id_nuevo_grupo
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID del nuevo grupo del estudiante
+ *       - in: path
+ *         name: id_estudiante
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: ID del estudiante a trasladar
+ *     responses:
+ *       200:
+ *         description: Estudiante trasladado al nuevo grupo correctamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 mensaje:
+ *                   type: string
+ *                   example: Estudiante trasladado al nuevo grupo correctamente.
+ *       400:
+ *         description: Error de validación o grupo no encontrado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: El grupo no está registrado.
+ *       500:
+ *         description: Error interno del servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Error interno del servidor ...
+ */
+router.put("/:id_grupo/trasladar/:id_nuevo_grupo/estudiante/:id_estudiante", grupoController.trasladarEstudianteDeGrupo);
+
+/**
+ * @openapi
  * /grupo/{id_grupo}:
  *   get:
  *     summary: Consultar un grupo por ID
@@ -508,4 +626,56 @@ router.get('/asignatura/:id_asignatura', grupoController.consultarGruposPorAsign
  *                   example: "Error interno del servidor: ..."
  */
 router.get('/asignatura/:id_asignatura/estudiante/:id_estudiante', grupoController.consultarGruposPorEstudiante);
+
+/**
+ * @openapi
+ * /grupo/{id_grupo}/estudiantes:
+ *   get:
+ *     summary: Consultar estudiantes de un grupo
+ *     tags: [Grupos]
+ *     parameters:
+ *       - in: path
+ *         name: id_grupo
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Estudiantes consultados correctamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 mensaje:
+ *                   type: string
+ *                 estudiantes:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Usuario'
+ *       400:
+ *         description: Parámetros invalidos/faltantes
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: El grupo no está registrado.
+ *       500:
+ *         description: Error interno del servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Error interno del servidor: ..."
+ */
+router.get('/:id_grupo/estudiantes', grupoController.consultarEstudiantesPorId);
+
 module.exports = router;
