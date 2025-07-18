@@ -450,6 +450,7 @@ router.get("/activos", docenteController.docentesActivos);
 
 router.post(
   "/:id_docente/gruposDeClase",
+  validarIdObligatorio("id_docente"),
   docenteController.asignarGruposDeClase
 );
 
