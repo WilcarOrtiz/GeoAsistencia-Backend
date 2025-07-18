@@ -203,34 +203,62 @@ async function consultarGruposPorAsignatura(id_asignatura) {
 }
 
 async function consultarGruposPorEstudiante(id_asignatura, id_estudiante) {
+  try {
     await validarExistencia(Asignatura, id_asignatura, "La asignatura");
     await validarExistencia(Estudiante, id_estudiante, "El estudiante");
 
     const grupos = await Grupo.findAll({
-        include: [
+      where: { id_asignatura },
+      include: [
         {
-            model: Estudiante,
-            where: { id_estudiante },
-            attributes: [],
-            through: { attributes: [] },
+          model: Estudiante,
+          where: { id_estudiante },
+          attributes: [], 
+          through: { attributes: [] },
         },
         {
-            model: Horario,
-            as: "horarios",
-            attributes: ["id_dia", "hora_inicio", "hora_fin"],
-            through: { attributes: [] },
+          model: Docente,
+          attributes: ["id_docente"],
+          include: {
+            model: Usuario,
+            attributes: ["nombres", "apellidos"],
+          },
         },
-        ],
-        group: ["GRUPO.id_grupo", "horarios.id_horario"],
-        subQuery: false,
+        {
+          model: Horario,
+          as: "horarios",
+          attributes: ["id_dia", "hora_inicio", "hora_fin"],
+          through: { attributes: [] },
+        },
+      ],
     });
 
+    const resultado = grupos.map((grupo) => ({
+      id_grupo: grupo.id_grupo,
+      nombre: grupo.nombre,
+      codigo: grupo.codigo,
+      docente: {
+        id_docente: grupo.DOCENTE?.id_docente,
+        nombre: grupo.DOCENTE?.USUARIO?.nombres,
+        apellido: grupo.DOCENTE?.USUARIO?.apellidos,
+      },
+      horarios: grupo.horarios,
+    }));
+
     return {
-        success: true,
-        mensaje: "Grupos consultados correctamente.",
-        grupos: grupos,
+      success: true,
+      mensaje: "Grupos consultados correctamente.",
+      grupos: resultado,
     };
+  } catch (error) {
+    return {
+      success: false,
+      mensaje: "Error interno del servidor.",
+      error: error.message,
+    };
+  }
 }
+
 
 async function consultarEstudiantesPorId(id_grupo) {
     await validarExistencia(Grupo,id_grupo, "El grupo");
