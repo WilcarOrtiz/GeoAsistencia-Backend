@@ -1,7 +1,8 @@
-const { Grupo, Asignatura, Docente, GrupoHorario, Horario, Estudiante, EstudianteGrupo, Usuario } = require("../models");
+const { Grupo, Asignatura, Docente, GrupoHorario, Horario, Estudiante, EstudianteGrupo, Usuario, Historial } = require("../models");
 const { validarExistencia, validarEstadoActivo } = require("../utils/validaciones/validarExistenciaModelo");
 const asociarHorariosAGrupo = require("../utils/helpers/asociarHorarios");
 const { Sequelize, Op } = require("sequelize");
+const validarGrupo = require("../utils/validaciones/validarGrupo");
 
 async function crearGrupo(datos) {
     const { id_asignatura, id_docente, codigo, horarios } = datos;
@@ -69,7 +70,6 @@ async function eliminarGrupo(id_grupo) {
     };
 }
     
-
 async function eliminarEstudianteDeGrupo(id_grupo, id_estudiante) {
     await validarExistencia(Grupo, id_grupo, "El grupo");
     await validarExistencia(Estudiante, id_estudiante, "El estudiante");
@@ -203,7 +203,6 @@ async function consultarGruposPorAsignatura(id_asignatura) {
 }
 
 async function consultarGruposPorEstudiante(id_asignatura, id_estudiante) {
-  try {
     await validarExistencia(Asignatura, id_asignatura, "La asignatura");
     await validarExistencia(Estudiante, id_estudiante, "El estudiante");
 
@@ -250,15 +249,7 @@ async function consultarGruposPorEstudiante(id_asignatura, id_estudiante) {
       mensaje: "Grupos consultados correctamente.",
       grupos: resultado,
     };
-  } catch (error) {
-    return {
-      success: false,
-      mensaje: "Error interno del servidor.",
-      error: error.message,
-    };
-  }
 }
-
 
 async function consultarEstudiantesPorId(id_grupo) {
     await validarExistencia(Grupo,id_grupo, "El grupo");
@@ -288,6 +279,37 @@ async function consultarEstudiantesPorId(id_grupo) {
     };
 }
 
+async function iniciarLlamadoLista(id_grupo, tema) {
+    await validarExistencia(Grupo, id_grupo, "El grupo");
+    const grupo = await Grupo.findByPk(id_grupo, {
+        include: [
+        {
+            model: Horario,
+            as: "horarios",
+            through: { attributes: [] },
+            attributes: ["hora_inicio", "hora_fin", "id_dia"],
+        },
+        ],
+    });
+
+    const fechaActual = new Date();
+
+    const horarioValido = grupo.horarios.some(horario => validarGrupo(horario, fechaActual));
+
+    if (!horarioValido) {
+        throw new Error("No se puede iniciar el llamado fuera del horario del grupo.");
+    }
+
+    grupo.update({estado_asistencia: true});
+
+    const historialCreado = await Historial.create({fecha: fechaActual, tema: tema, id_grupo: id_grupo});
+    return {
+        success: true,
+        mensaje: "Iniciado llamado a lista correctamente.",
+        historial: historialCreado,
+    };
+}
+
 module.exports = {
     crearGrupo,
     editarGrupo,
@@ -298,5 +320,6 @@ module.exports = {
     consultarGruposPorDocente,
     consultarGruposPorAsignatura,
     consultarGruposPorEstudiante,
-    consultarEstudiantesPorId    
+    consultarEstudiantesPorId,
+    iniciarLlamadoLista
 }

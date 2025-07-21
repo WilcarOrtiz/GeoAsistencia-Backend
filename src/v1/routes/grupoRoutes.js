@@ -518,7 +518,7 @@ router.get("/:id_grupo", grupoController.consultarGrupoPorId);
  *                   type: string
  *                   example: "Error interno del servidor: ..."
  */
-router.get('/asignatura/:id_asignatura/docente/:id_docente', grupoController.consultarGruposPorDocente);
+router.get("/asignatura/:id_asignatura/docente/:id_docente", grupoController.consultarGruposPorDocente);
 
 /**
  * @openapi
@@ -569,7 +569,7 @@ router.get('/asignatura/:id_asignatura/docente/:id_docente', grupoController.con
  *                   type: string
  *                   example: "Error interno del servidor: ..."
  */
-router.get('/asignatura/:id_asignatura', grupoController.consultarGruposPorAsignatura);
+router.get("/asignatura/:id_asignatura", grupoController.consultarGruposPorAsignatura);
 
 /**
  * @openapi
@@ -625,7 +625,7 @@ router.get('/asignatura/:id_asignatura', grupoController.consultarGruposPorAsign
  *                   type: string
  *                   example: "Error interno del servidor: ..."
  */
-router.get('/asignatura/:id_asignatura/estudiante/:id_estudiante', grupoController.consultarGruposPorEstudiante);
+router.get("/asignatura/:id_asignatura/estudiante/:id_estudiante", grupoController.consultarGruposPorEstudiante);
 
 /**
  * @openapi
@@ -676,6 +676,78 @@ router.get('/asignatura/:id_asignatura/estudiante/:id_estudiante', grupoControll
  *                   type: string
  *                   example: "Error interno del servidor: ..."
  */
-router.get('/:id_grupo/estudiantes', grupoController.consultarEstudiantesPorId);
+router.get("/:id_grupo/estudiantes", grupoController.consultarEstudiantesPorId);
+
+/**
+ * @openapi
+ * /grupo/{id_grupo}/asistencia:
+ *   patch:
+ *     summary: Iniciar llamado a lista
+ *     description: Inicia el llamado a lista de un grupo si la solicitud se realiza dentro del horario permitido.
+ *     tags: [Grupos]
+ *     parameters:
+ *       - in: path
+ *         name: id_grupo
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               tema:
+ *                 type: string
+ *                 example: "Bases de datos"
+ *     responses:
+ *       201:
+ *         description: Llamado a lista iniciado correctamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 mensaje:
+ *                   type: string
+ *                   example: Iniciado llamado a lista correctamente.
+ *                 historial:
+ *                   $ref: '#/components/schemas/Historial'
+ *       400:
+ *         description: El grupo no tiene clase en este momento
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: El grupo no tiene clase en este momento.
+ *       404:
+ *         description: Grupo no encontrado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: El grupo no está registrado.
+ *       500:
+ *         description: Error interno del servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Error interno del servidor: ..."
+ */
+router.patch("/:id_grupo/asistencia", grupoController.iniciarLlamadoLista);
 
 module.exports = router;

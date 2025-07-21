@@ -34,7 +34,8 @@ const options = {
     "./src/schemas/userSchema.js",
     "./src/schemas/grupoSchema.js", "./src/v1/routes/grupoRoutes.js",
     "./src/schemas/diaSchema.js",
-    "./src/schemas/horarioSchema.js"
+    "./src/schemas/horarioSchema.js",
+    "./src/schemas/historialSchema.js"
   ],
 };
 

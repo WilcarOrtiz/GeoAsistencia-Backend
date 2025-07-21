@@ -121,6 +121,19 @@ async function consultarEstudiantesPorId(req, res) {
   }
 }
 
+async function iniciarLlamadoLista(req, res) {
+  try {
+    const { id_grupo } = req.params;
+    const { tema } = req.body;
+    if (!validarParametros(req, res, ["id_grupo"])) return;
+    const historialCreado = await grupoService.iniciarLlamadoLista(id_grupo, tema);
+    return res.status(201).json(historialCreado);
+  } catch (error) {
+    return manejarError(res, error);
+  }
+ 
+}
+
 module.exports = {
     crearGrupo,
     editarGrupo,
@@ -131,5 +144,6 @@ module.exports = {
     consultarGruposPorDocente,
     consultarGruposPorAsignatura,
     consultarGruposPorEstudiante,
-    consultarEstudiantesPorId   
+    consultarEstudiantesPorId,
+    iniciarLlamadoLista
 }
