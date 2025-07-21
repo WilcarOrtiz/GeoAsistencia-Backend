@@ -1,20 +1,27 @@
-const { id } = require("apicache");
 const { Grupo, Historial, Asistencia, Estudiante } = require("../models");
-const { encontrarRegistroEnModelo } = require("../utils/helpers/modeloHelper");
+const {
+  encontrarRegistroEnModelo,
+  buscarRegistroPorCondicion,
+} = require("../utils/helpers/modeloHelper");
 
 async function registrarAsistencia(datos, id_estudiante) {
   try {
     const { id_grupo, fecha, hora } = datos;
-    const grupoClase = await encontrarRegistroEnModelo(Grupo, id_grupo);
-    if (!grupoClase) throw new Error("El grupo no existe.");
+
+    await encontrarRegistroEnModelo(Estudiante, id_estudiante, "El estudiante");
+
+    const grupoClase = await encontrarRegistroEnModelo(
+      Grupo,
+      id_grupo,
+      "El grupo de clase"
+    );
 
     if (grupoClase.estado_asistencia) {
-      const historial_asistencia = await Historial.findOne({
-        where: { id_grupo, fecha },
-        attributes: ["id_historial_asistencia"],
-      });
-      if (!historial_asistencia)
-        throw new Error("No se encontró el historial de asistencia.");
+      const historial_asistencia = await buscarRegistroPorCondicion(
+        Historial,
+        { id_grupo, fecha },
+        "La lista de asistencia"
+      );
 
       await Asistencia.create({
         id_estudiante: id_estudiante,
@@ -37,30 +44,29 @@ async function registrarAsistencia(datos, id_estudiante) {
 
 async function cambiarEstadoAsistencia(datos) {
   try {
-    const { id_grupo, fecha, identificacion } = datos;
+    const { id_grupo, fecha, hora, id_estudiante } = datos;
 
     const estudiante = await encontrarRegistroEnModelo(
       Estudiante,
-      identificacion
+      id_estudiante,
+      "El estudiante"
     );
-    if (!estudiante) throw new Error("El estudiante no existe.");
 
-    const grupoClase = await encontrarRegistroEnModelo(Grupo, id_grupo);
-    if (!grupoClase) throw new Error("El grupo no existe.");
+    await encontrarRegistroEnModelo(Grupo, id_grupo, "El grupo de clase");
+    const historial_asistencia = await buscarRegistroPorCondicion(
+      Historial,
+      { id_grupo, fecha },
+      "La lista de asistencia"
+    );
 
-    const historial_asistencia = await Historial.findOne({
-      where: { id_grupo, fecha },
-      attributes: ["id_historial_asistencia"],
-    });
-
-    const asistencia = await Asistencia.findOne({
-      where: {
+    const asistencia = await buscarRegistroPorCondicion(
+      Asistencia,
+      {
         id_estudiante: estudiante.id_estudiante,
         id_historial_asistencia: historial_asistencia.id_historial_asistencia,
       },
-    });
-
-    if (!asistencia) {throw new Error("No se encontró el registro de asistencia.");}
+      "La asistencia"
+    );
 
     const nuevoEstado = !asistencia.estado_asistencia;
     asistencia.estado_asistencia = nuevoEstado;
@@ -70,7 +76,9 @@ async function cambiarEstadoAsistencia(datos) {
       mensaje: "Registro de asistencia actualizado.",
     };
   } catch (error) {
-    throw new Error(`Error al actualizar el registro de la asistencia, ${error.message}`);
+    throw new Error(
+      `Error al actualizar el registro de la asistencia, ${error.message}`
+    );
   }
 }
 

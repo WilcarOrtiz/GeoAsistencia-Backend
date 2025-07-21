@@ -33,6 +33,7 @@ const { verifyToken } = require("../../middlewares/verifyToken");
  *                 example: "2025-07-21"
  *               hora:
  *                 type: string
+ *                 format: time
  *                 example: "08:15:00"
  *     responses:
  *       200:
@@ -94,7 +95,7 @@ router.post(
  *             required:
  *               - id_grupo
  *               - fecha
- *               - identificacion
+ *               - id_estudiante
  *             properties:
  *               id_grupo:
  *                 type: integer
@@ -103,9 +104,13 @@ router.post(
  *                 type: string
  *                 format: date
  *                 example: "2025-07-21"
- *               identificacion:
+ *               id_estudiante:
  *                 type: string
- *                 example: "1001234567"
+ *                 example: "Hr3BVwCLocRJ5amsEuj1mmUJCci2"
+ *               hora:
+ *                 type: string
+ *                 format: time
+ *                 example: "08:15:00"
  *     responses:
  *       200:
  *         description: Estado de asistencia actualizado

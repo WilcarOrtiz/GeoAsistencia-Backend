@@ -31,7 +31,7 @@ async function docentesActivos() {
 async function asignarGruposADocente(id_docente, grupos) {
   const transaction = await sequelize.transaction();
   try {
-    if (!(await encontrarRegistroEnModelo(Docente, id_docente))) {
+    if (!(await encontrarRegistroEnModelo(Docente, id_docente, "El docente"))) {
       throw new Error("El docente no existe.");
     }
 
