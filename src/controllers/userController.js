@@ -76,30 +76,9 @@ async function editarUsuario(req, res) {
   }
 }
 
-/*function obtenerUsuariosPorRol(nombreRol) {
-  return async function (req, res) {
-    try {
-      const { id_usuario } = req.query;
-      const usuarios = await userService.obtenerUsuarios(
-        nombreRol,
-        id_usuario || null
-      );
-      res.status(200).json({
-        success: true,
-        usuarios,
-      });
-    } catch (error) {
-      res.status(400).json({
-        success: false,
-        error: error.message,
-      });
-    }
-  };
-} */
-
 async function obtenerUsuarios(req, res) {
   try {
-    const filtros = req.query; // Captura todos los query params
+    const filtros = req.query;
     const usuarios = await userService.obtenerUsuarios(filtros);
 
     res.status(200).json({

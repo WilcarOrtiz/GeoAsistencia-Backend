@@ -11,7 +11,7 @@ const {
   formatearUsuariosConAsignaturasYGrupos,
 } = require("../utils/helpers/formatearUsuarioConAsignaturasYGrupos");
 
-const { encontrarRegistroEnModelo } = require("../utils/helpers/userHelper");
+const { encontrarRegistroEnModelo } = require("../utils/helpers/modeloHelper");
 
 async function obtenerEstudiantesNoAsignadosAGrupo(id_asignatura) {
   //Consultar estudiantes que no pertenezcan a un grupo de la asignatura
@@ -155,7 +155,7 @@ async function consultarEstudiantesConSusGrupos(id_estudiante) {
       include: [
         {
           model: Usuario,
-          attributes: ["identificacion","nombres", "apellidos", "correo"],
+          attributes: ["identificacion", "nombres", "apellidos", "correo"],
         },
         {
           model: Grupo,
@@ -175,7 +175,10 @@ async function consultarEstudiantesConSusGrupos(id_estudiante) {
       throw new Error("El estudiante no existe.");
     }
 
-    const data = formatearUsuariosConAsignaturasYGrupos(estudiantes, "estudiante");
+    const data = formatearUsuariosConAsignaturasYGrupos(
+      estudiantes,
+      "estudiante"
+    );
 
     return {
       success: true,

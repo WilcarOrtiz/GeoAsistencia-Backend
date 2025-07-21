@@ -1,6 +1,6 @@
 module.exports = (sequelize, DataTypes) => {
-  const EstudianteGrupo = sequelize.define(
-    "EstudianteGrupo",
+  const Asistencia = sequelize.define(
+    "Asistencia",
     {
       id_estudiante: {
         type: DataTypes.STRING,
@@ -13,23 +13,30 @@ module.exports = (sequelize, DataTypes) => {
         onUpdate: "CASCADE",
         onDelete: "CASCADE",
       },
-      id_grupo: {
+      id_historial_asistencia: {
         type: DataTypes.INTEGER,
         allowNull: false,
         primaryKey: true,
         references: {
-          model: "GRUPO",
-          key: "id_grupo",
+          model: "HISTORIAL_ASISTENCIA",
+          key: "id_historial_asistencia",
         },
         onUpdate: "CASCADE",
         onDelete: "CASCADE",
       },
+      hora: {
+        type: DataTypes.TIME,
+        allowNull: false,
+      },
+      estado_asistencia: {
+        type: DataTypes.BOOLEAN,
+      },
     },
     {
-      tableName: "ESTUDIANTE_GRUPO",
+      tableName: "ASISTENCIA",
       timestamps: false,
     }
   );
 
-  return EstudianteGrupo;
+  return Asistencia;
 };

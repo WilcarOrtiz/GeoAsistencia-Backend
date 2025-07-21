@@ -1,17 +1,20 @@
-const { Usuario, Docente, Estudiante, Rol } = require("../models");
+const { Usuario, Rol } = require("../models");
 const { Op } = require("sequelize");
 const {
   obtenerModeloPorRol,
-  existeUsuarioCorreoIdentificacion,
   buscarRolPorNombre,
   encontrarRegistroEnModelo,
-} = require("../utils/helpers/userHelper");
-const { existeCorreoEnFirebase } = require("../utils/helpers/firebaseHelper");
+} = require("../utils/helpers/modeloHelper");
+
+const {
+  existeUsuarioCorreoIdentificacion,
+} = require("../utils/validaciones/validarExistenciaCorreoIdentificacion");
 
 const {
   crearUsuarioFirebase,
   actualizarUsuarioFirebase,
   asignarClaims,
+  existeCorreoEnFirebase,
 } = require("../utils/helpers/firebaseHelper");
 
 async function crearUsuario(data) {
@@ -230,33 +233,6 @@ async function crearUsuarioMasivamente(datos) {
   }
 }
 
-/*async function obtenerUsuarios(nombreRol, id_usuario = null) {
-  try {
-    if (id_usuario) {
-      if (!(await encontrarRegistroEnModelo(Usuario, id_usuario))) {
-        throw new Error("El usuario no existe.");
-      }
-    }
-
-    const rol = await buscarRolPorNombre(nombreRol);
-    if (!rol) throw new Error(`Rol ${nombreRol} no encontrado.`);
-    const ModeloAsociado = obtenerModeloPorRol(rol.nombre);
-    const whereCondition = { id_rol: rol.id_rol };
-    if (id_usuario) whereCondition.id_usuario = id_usuario;
-
-    return await Usuario.findAll({
-      where: whereCondition,
-      include: [{ model: ModeloAsociado, required: true }],
-      order: [["apellidos", "ASC"]],
-    });
-  } catch (error) {
-    throw new Error(
-      `Error al obtener usuarios tipo ${nombreRol}: ${error.message}`
-    );
-  }
-}
-
- */
 async function obtenerUsuarios(filtros = {}) {
   try {
     const whereConditionUsuario = {};

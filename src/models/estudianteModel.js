@@ -3,12 +3,12 @@ module.exports = (sequelize, DataTypes) => {
     "ESTUDIANTE",
     {
       id_estudiante: {
-        type: DataTypes.STRING, // mismo tipo que Usuario.id
+        type: DataTypes.STRING,
         primaryKey: true,
         references: {
-          model: "Usuario", // nombre exacto de la tabla
-          key: "id"
-        }
+          model: "Usuario",
+          key: "id",
+        },
       },
       uuid_telefono: DataTypes.STRING,
       estado: DataTypes.BOOLEAN,
