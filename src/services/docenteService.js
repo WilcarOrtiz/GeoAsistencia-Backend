@@ -1,6 +1,6 @@
 const { Usuario, Docente, Grupo, Asignatura } = require("../models");
 const sequelize = require("../database/supabase/db");
-const { encontrarRegistroEnModelo } = require("../utils/helpers/userHelper");
+const { encontrarRegistroEnModelo } = require("../utils/helpers/modeloHelper");
 const {
   formatearUsuariosConAsignaturasYGrupos,
 } = require("../utils/helpers/formatearUsuarioConAsignaturasYGrupos");

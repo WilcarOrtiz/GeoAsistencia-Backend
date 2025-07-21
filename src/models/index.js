@@ -13,6 +13,7 @@ const Dia = require("./diaModel")(sequelize, DataTypes);
 const GrupoHorario = require("./grupoHorarioModel")(sequelize, DataTypes);
 const EstudianteGrupo = require("./estudianteGrupoModel")(sequelize, DataTypes);
 const Historial = require("./historialModel")(sequelize, DataTypes);
+const Asistencia = require("./asistenciaModel")(sequelize, DataTypes);
 
 // Relaciones
 Usuario.hasOne(Estudiante, { foreignKey: "id_estudiante" });
@@ -37,6 +38,22 @@ Estudiante.belongsToMany(Grupo, {
   timestamps: false,
 });
 
+Estudiante.hasMany(Asistencia, {
+  foreignKey: "id_estudiante",
+});
+
+Asistencia.belongsTo(Estudiante, {
+  foreignKey: "id_estudiante",
+});
+
+Historial.hasMany(Asistencia, {
+  foreignKey: "id_historial_asistencia",
+});
+
+Asistencia.belongsTo(Historial, {
+  foreignKey: "id_historial_asistencia",
+});
+
 Grupo.belongsToMany(Estudiante, {
   through: "ESTUDIANTE_GRUPO",
   foreignKey: "id_grupo",
@@ -58,11 +75,11 @@ Horario.belongsToMany(Grupo, {
 });
 
 Grupo.hasMany(Historial, {
-  foreignKey: "id_grupo"
+  foreignKey: "id_grupo",
 });
 
 Historial.belongsTo(Grupo, {
-  foreignKey: "id_grupo"
+  foreignKey: "id_grupo",
 });
 
 Horario.belongsTo(Dia, { foreignKey: "id_dia" });
@@ -80,5 +97,6 @@ module.exports = {
   Dia,
   GrupoHorario,
   EstudianteGrupo,
-  Historial
+  Historial,
+  Asistencia,
 };
