@@ -2,7 +2,7 @@ const { Usuario, Docente, Grupo, Asignatura } = require("../models");
 const sequelize = require("../database/supabase/db");
 const { encontrarRegistroEnModelo } = require("../utils/helpers/userHelper");
 const {
-  formatearDocentesConAsignaturasYGrupos,
+  formatearUsuariosConAsignaturasYGrupos,
 } = require("../utils/helpers/formatearUsuarioConAsignaturasYGrupos");
 
 async function docentesActivos() {
@@ -95,7 +95,7 @@ async function consultarDocentesConSusGrupos(id_docente) {
       include: [
         {
           model: Usuario,
-          attributes: ["nombres", "apellidos", "correo"],
+          attributes: ["identificacion", "nombres", "apellidos", "correo"],
         },
         {
           model: Grupo,
@@ -114,7 +114,7 @@ async function consultarDocentesConSusGrupos(id_docente) {
       throw new Error("El docente no existe.");
     }
 
-    const data = formatearDocentesConAsignaturasYGrupos(docentes);
+    const data = formatearUsuariosConAsignaturasYGrupos(docentes, "docente");
 
     return {
       success: true,

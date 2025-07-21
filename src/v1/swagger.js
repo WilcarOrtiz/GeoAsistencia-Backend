@@ -25,6 +25,7 @@ const options = {
     ],
   },
   apis: [
+    "./src/v1/routes/userRoutes.js",
     "./src/v1/routes/docentesRoutes.js",
     "./src/v1/routes/estudianteRoutes.js",
     "./src/v1/routes/authRoutes.js",

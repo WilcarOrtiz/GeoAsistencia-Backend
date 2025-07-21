@@ -11,6 +11,7 @@ const docenteRoutes = require("./v1/routes/docentesRoutes");
 const authRoutes = require("./v1/routes/authRoutes");
 const asignaturaRoutes = require("./v1/routes/asignaturaRoutes");
 const grupoRoutes = require("./v1/routes/grupoRoutes");
+const userRoutes = require("./v1/routes/userRoutes");
 
 async function main() {
   try {
@@ -19,11 +20,13 @@ async function main() {
     app.use(cookieParser());
     app.use(bodyParser.json());
 
+    app.use("/usuario", userRoutes);
+
     app.use("/estudiante", estudianteRoutes);
     app.use("/docente", docenteRoutes);
     app.use("/auth", authRoutes);
     app.use("/asignatura", asignaturaRoutes);
-    app.use("/grupo", grupoRoutes)
+    app.use("/grupo", grupoRoutes);
 
     app.use(
       cors({
