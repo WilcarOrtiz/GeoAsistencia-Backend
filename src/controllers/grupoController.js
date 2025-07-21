@@ -134,6 +134,19 @@ async function iniciarLlamadoLista(req, res) {
  
 }
 
+async function detenerLlamadoLista(req, res) {
+  try {
+    const { id_grupo } = req.params;
+    if (!validarParametros(req, res, ["id_grupo"])) return;
+    const historialCerrado = await grupoService.detenerLlamadoLista(id_grupo);
+    return res.status(200).json(historialCerrado);
+  } catch (error) {
+    return manejarError(res, error);
+  }
+ 
+}
+
+
 module.exports = {
     crearGrupo,
     editarGrupo,
@@ -145,5 +158,6 @@ module.exports = {
     consultarGruposPorAsignatura,
     consultarGruposPorEstudiante,
     consultarEstudiantesPorId,
-    iniciarLlamadoLista
+    iniciarLlamadoLista,
+    detenerLlamadoLista
 }
