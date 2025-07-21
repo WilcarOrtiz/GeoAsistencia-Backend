@@ -764,7 +764,7 @@ router.patch("/:id_grupo/asistencia", grupoController.iniciarLlamadoLista);
  *         schema:
  *           type: integer
  *     responses:
- *       201:
+ *       200:
  *         description: Llamado a lista detenido correctamente
  *         content:
  *           application/json:

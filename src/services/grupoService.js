@@ -1,4 +1,4 @@
-const { Grupo, Asignatura, Docente, GrupoHorario, Horario, Estudiante, EstudianteGrupo, Usuario, Historial } = require("../models");
+const { Grupo, Asignatura, Docente, GrupoHorario, Horario, Estudiante, EstudianteGrupo, Usuario, Historial, Asistencia } = require("../models");
 const { validarExistencia, validarEstadoActivo } = require("../utils/validaciones/validarExistenciaModelo");
 const asociarHorariosAGrupo = require("../utils/helpers/asociarHorarios");
 const { Sequelize, Op } = require("sequelize");
@@ -327,7 +327,7 @@ async function detenerLlamadoLista(id_grupo) {
     throw new Error("No se encontró un historial de asistencia para este grupo en esta fecha.");
   }
 
-  const id_historial = historial.id_historial;
+  const id_historial_asistencia = historial.id_historial_asistencia;
 
   const estudiantesGrupo = await Estudiante.findAll({
     include: {
@@ -337,17 +337,19 @@ async function detenerLlamadoLista(id_grupo) {
   });
 
   const asistenciasRegistradas = await Asistencia.findAll({
-    where: { id_historial },
+    where: { id_historial_asistencia },
   });
 
   const idsAsistentes = asistenciasRegistradas.map(a => a.id_estudiante);
 
   const estudiantesNoAsistieron = estudiantesGrupo.filter(est => !idsAsistentes.includes(est.id_estudiante));
 
+  const fechaActual = new Date();
+  const hora = fechaActual.toTimeString().slice(0, 5);
   const registroFaltas = estudiantesNoAsistieron.map(est => ({
     id_estudiante: est.id_estudiante,
-    hora: Timestamp.now(),
-    id_historial,
+    hora: hora,
+    id_historial_asistencia: id_historial_asistencia,
     estado: false,
   }));
 
