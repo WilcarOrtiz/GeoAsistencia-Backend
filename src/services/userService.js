@@ -172,8 +172,8 @@ async function cambiarEstadoUsuario(id_usuario) {
 
     const rol = await encontrarRegistroEnModelo(Rol, usuario.id_rol);
     if (!rol) throw new Error("Rol no válido.");
-
     const Modelo = obtenerModeloPorRol(rol.nombre);
+
     const registro = await encontrarRegistroEnModelo(Modelo, id_usuario);
     if (!registro) throw new Error(`${rol.nombre} no encontrado.`);
 
@@ -181,13 +181,11 @@ async function cambiarEstadoUsuario(id_usuario) {
     await registro.save();
 
     return {
-      mensaje: `Estado de ${rol.nombre.toLowerCase()} actualizado correctamente.`,
+      mensaje: `Estado de ${rol.nombre.toLowerCase()} actualizado.`,
       estado: registro.estado,
     };
   } catch (error) {
-    throw new Error(
-      `No se pudo cambiar el estado del usuario: ${error.message}`
-    );
+    throw new Error(`No se pudo cambiar el estado: ${error.message}`);
   }
 }
 
@@ -232,7 +230,7 @@ async function crearUsuarioMasivamente(datos) {
   }
 }
 
-async function obtenerUsuarios(nombreRol, id_usuario = null) {
+/*async function obtenerUsuarios(nombreRol, id_usuario = null) {
   try {
     if (id_usuario) {
       if (!(await encontrarRegistroEnModelo(Usuario, id_usuario))) {
@@ -255,6 +253,74 @@ async function obtenerUsuarios(nombreRol, id_usuario = null) {
     throw new Error(
       `Error al obtener usuarios tipo ${nombreRol}: ${error.message}`
     );
+  }
+}
+
+ */
+async function obtenerUsuarios(filtros = {}) {
+  try {
+    const whereConditionUsuario = {};
+    let include = [];
+    let ModeloAsociado = null;
+    let whereAsociado = {};
+
+    // 1. ID usuario
+    if (filtros.id_usuario) {
+      const existeUsuario = await encontrarRegistroEnModelo(
+        Usuario,
+        filtros.id_usuario
+      );
+      if (!existeUsuario) throw new Error("El usuario no existe.");
+      whereConditionUsuario.id_usuario = filtros.id_usuario;
+    }
+
+    // 2. Rol
+    if (filtros.rol) {
+      const rol = await buscarRolPorNombre(filtros.rol);
+      if (!rol) throw new Error(`Rol ${filtros.rol} no encontrado.`);
+      whereConditionUsuario.id_rol = rol.id_rol;
+      ModeloAsociado = obtenerModeloPorRol(rol.nombre);
+    }
+
+    // 3. Filtros propios de Usuario
+    if (filtros.correo)
+      whereConditionUsuario.correo = { [Op.like]: `%${filtros.correo}%` };
+    if (filtros.nombres)
+      whereConditionUsuario.nombres = { [Op.like]: `%${filtros.nombres}%` };
+    if (filtros.apellidos)
+      whereConditionUsuario.apellidos = { [Op.like]: `%${filtros.apellidos}%` };
+    if (filtros.identificacion)
+      whereConditionUsuario.identificacion = filtros.identificacion;
+    if (filtros.uuid_telefono)
+      whereConditionUsuario.uuid_telefono = filtros.uuid_telefono;
+
+    // 4. Estado (aplicable al modelo asociado)
+    if (filtros.estado !== undefined && ModeloAsociado) {
+      whereAsociado.estado = filtros.estado;
+    }
+
+    // 5. Include dinámico
+    if (ModeloAsociado) {
+      include.push({
+        model: ModeloAsociado,
+        required: true,
+        where: whereAsociado,
+      });
+    }
+
+    // 6. Paginación
+    const limit = filtros.limit ? parseInt(filtros.limit, 10) : 50;
+    const offset = filtros.offset ? parseInt(filtros.offset, 10) : 0;
+
+    return await Usuario.findAll({
+      where: whereConditionUsuario,
+      include,
+      order: [["apellidos", "ASC"]],
+      limit,
+      offset,
+    });
+  } catch (error) {
+    throw new Error(`Error al obtener usuarios: ${error.message}`);
   }
 }
 

@@ -1,23 +1,4 @@
-const usuarioController = require("./userController");
 const estudianteService = require("../services/estudiantesService");
-
-async function registrarUsuarioEstudiante(req, res) {
-  return usuarioController.registrarUsuario(req, res);
-}
-
-async function habilitarDeshabiliarEstudiante(req, res) {
-  return usuarioController.cambiarEstadoUsuario(req, res);
-}
-
-async function crearEstudianteMasivamente(req, res) {
-  return usuarioController.crearUsuarioMasivamente(req, res);
-}
-
-async function editarEstudiante(req, res) {
-  return usuarioController.editarUsuario(req, res);
-}
-
-const listarEstudiantes = usuarioController.obtenerUsuariosPorRol("ESTUDIANTE");
 
 async function obtenerEstudiantesNoAsignadosAGrupo(req, res) {
   try {
@@ -77,11 +58,6 @@ async function consultarEstudiantesConSusGrupos(req, res) {
 }
 
 module.exports = {
-  registrarUsuarioEstudiante,
-  habilitarDeshabiliarEstudiante,
-  crearEstudianteMasivamente,
-  editarEstudiante,
-  listarEstudiantes,
   obtenerEstudiantesNoAsignadosAGrupo,
   asignarGruposDeClase,
   consultarEstudiantesConSusGrupos,

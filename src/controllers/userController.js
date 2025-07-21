@@ -76,7 +76,7 @@ async function editarUsuario(req, res) {
   }
 }
 
-function obtenerUsuariosPorRol(nombreRol) {
+/*function obtenerUsuariosPorRol(nombreRol) {
   return async function (req, res) {
     try {
       const { id_usuario } = req.query;
@@ -95,6 +95,23 @@ function obtenerUsuariosPorRol(nombreRol) {
       });
     }
   };
+} */
+
+async function obtenerUsuarios(req, res) {
+  try {
+    const filtros = req.query; // Captura todos los query params
+    const usuarios = await userService.obtenerUsuarios(filtros);
+
+    res.status(200).json({
+      success: true,
+      usuarios,
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      error: error.message,
+    });
+  }
 }
 
 module.exports = {
@@ -102,5 +119,5 @@ module.exports = {
   cambiarEstadoUsuario,
   crearUsuarioMasivamente,
   editarUsuario,
-  obtenerUsuariosPorRol,
+  obtenerUsuarios,
 };

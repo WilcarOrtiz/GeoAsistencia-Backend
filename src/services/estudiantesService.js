@@ -8,7 +8,7 @@ const {
 const { Op } = require("sequelize");
 const sequelize = require("../database/supabase/db");
 const {
-  formatearEstudiantesConAsignaturasYGrupos,
+  formatearUsuariosConAsignaturasYGrupos,
 } = require("../utils/helpers/formatearUsuarioConAsignaturasYGrupos");
 
 const { encontrarRegistroEnModelo } = require("../utils/helpers/userHelper");
@@ -155,11 +155,11 @@ async function consultarEstudiantesConSusGrupos(id_estudiante) {
       include: [
         {
           model: Usuario,
-          attributes: ["nombres", "apellidos", "correo"],
+          attributes: ["identificacion","nombres", "apellidos", "correo"],
         },
         {
           model: Grupo,
-          attributes: ["id_grupo", "nombre","codigo"],
+          attributes: ["id_grupo", "nombre", "codigo"],
           include: [
             {
               model: Asignatura,
@@ -175,7 +175,7 @@ async function consultarEstudiantesConSusGrupos(id_estudiante) {
       throw new Error("El estudiante no existe.");
     }
 
-    const data = formatearEstudiantesConAsignaturasYGrupos(estudiantes);
+    const data = formatearUsuariosConAsignaturasYGrupos(estudiantes, "estudiante");
 
     return {
       success: true,
