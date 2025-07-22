@@ -93,7 +93,7 @@ const grupoController = require("../../controllers/grupoController");
  *                     estado_asistencia:
  *                       type: boolean
  *                       example: true
- *       400:
+ *       409:
  *         description: Error de validación o grupo ya registrado
  *         content:
  *           application/json:
@@ -185,7 +185,7 @@ router.post("/registrar", grupoController.crearGrupo);
  *                   example: Grupo editado correctamente.
  *                 grupo:
  *                   $ref: '#/components/schemas/Grupo'
- *       400:
+ *       404:
  *         description: Error de validación o grupo no encontrado
  *         content:
  *           application/json:
@@ -235,7 +235,7 @@ router.put("/editar/:id_grupo", grupoController.editarGrupo);
  *                 mensaje:
  *                   type: string
  *                   example: Grupo eliminado correctamente.
- *       400:
+ *       404:
  *         description: Error de validación o grupo no encontrado
  *         content:
  *           application/json:
@@ -291,7 +291,7 @@ router.delete("/eliminar/:id_grupo", grupoController.eliminarGrupo);
  *                 mensaje:
  *                   type: string
  *                   example: Estudiante eliminado del grupo correctamente.
- *       400:
+ *       404:
  *         description: Error de validación o grupo no encontrado
  *         content:
  *           application/json:
@@ -353,7 +353,7 @@ router.delete("/:id_grupo/estudiante/:id_estudiante", grupoController.eliminarEs
  *                 mensaje:
  *                   type: string
  *                   example: Estudiante trasladado al nuevo grupo correctamente.
- *       400:
+ *       404:
  *         description: Error de validación o grupo no encontrado
  *         content:
  *           application/json:
@@ -441,7 +441,7 @@ router.put("/:id_grupo/trasladar/:id_nuevo_grupo/estudiante/:id_estudiante", gru
  *                             type: string
  *                             format: time
  *                             example: "10:00"
- *       400:
+ *       404:
  *         description: ID inválido o grupo no registrado
  *         content:
  *           application/json:
@@ -548,7 +548,7 @@ router.get("/asignatura/:id_asignatura/docente/:id_docente", grupoController.con
  *                   type: array
  *                   items:
  *                     $ref: '#/components/schemas/Grupo'
- *       400:
+ *       404:
  *         description: Parámetros invalidos/faltantes
  *         content:
  *           application/json:
@@ -604,7 +604,7 @@ router.get("/asignatura/:id_asignatura", grupoController.consultarGruposPorAsign
  *                   type: array
  *                   items:
  *                     $ref: '#/components/schemas/Grupo'
- *       400:
+ *       404:
  *         description: Parámetros invalidos/faltantes
  *         content:
  *           application/json:
@@ -655,7 +655,7 @@ router.get("/asignatura/:id_asignatura/estudiante/:id_estudiante", grupoControll
  *                   type: array
  *                   items:
  *                     $ref: '#/components/schemas/Usuario'
- *       400:
+ *       404:
  *         description: Parámetros invalidos/faltantes
  *         content:
  *           application/json:
@@ -750,4 +750,53 @@ router.get("/:id_grupo/estudiantes", grupoController.consultarEstudiantesPorId);
  */
 router.patch("/:id_grupo/asistencia", grupoController.iniciarLlamadoLista);
 
+/**
+ * @openapi
+ * /grupo/{id_grupo}/asistencia/detener:
+ *   patch:
+ *     summary: Detener llamado a lista
+ *     description: Detiene el llamado a lista de un grupo.
+ *     tags: [Grupos]
+ *     parameters:
+ *       - in: path
+ *         name: id_grupo
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       201:
+ *         description: Llamado a lista detenido correctamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 mensaje:
+ *                   type: string
+ *                   example: Detenido llamado a lista correctamente.
+ *       404:
+ *         description: Grupo no encontrado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: El grupo no está registrado.
+ *       500:
+ *         description: Error interno del servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Error interno del servidor: ..."
+ */
+router.patch("/:id_grupo/asistencia/detener", grupoController.detenerLlamadoLista);
 module.exports = router;

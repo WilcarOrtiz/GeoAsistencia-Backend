@@ -31,7 +31,7 @@ const upload = require("../../middlewares/uploadMiddleware");
  *                   example: Asignatura registrada correctamente.
  *                 asignatura:
  *                   $ref: '#/components/schemas/Asignatura'
- *       400:
+ *       409:
  *         description: La asignatura ya está registrada
  *         content:
  *           application/json:

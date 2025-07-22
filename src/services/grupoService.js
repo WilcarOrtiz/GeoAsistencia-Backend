@@ -3,6 +3,7 @@ const { validarExistencia, validarEstadoActivo } = require("../utils/validacione
 const asociarHorariosAGrupo = require("../utils/helpers/asociarHorarios");
 const { Sequelize, Op } = require("sequelize");
 const validarGrupo = require("../utils/validaciones/validarGrupo");
+const { Timestamp } = require("firebase-admin/firestore");
 
 async function crearGrupo(datos) {
     const { id_asignatura, id_docente, codigo, horarios } = datos;
@@ -310,6 +311,55 @@ async function iniciarLlamadoLista(id_grupo, tema) {
     };
 }
 
+async function detenerLlamadoLista(id_grupo) {
+  const grupoExistente = await validarExistencia(Grupo, id_grupo, "El grupo");
+
+  await grupoExistente.update({ estado_asistencia: false });
+
+  const historial = await Historial.findOne({
+    where: {
+      id_grupo,
+      fecha: new Date().toISOString().split('T')[0], 
+    },
+  });
+
+  if (!historial) {
+    throw new Error("No se encontró un historial de asistencia para este grupo en esta fecha.");
+  }
+
+  const id_historial = historial.id_historial;
+
+  const estudiantesGrupo = await Estudiante.findAll({
+    include: {
+      model: Grupo,
+      where: { id_grupo },
+    },
+  });
+
+  const asistenciasRegistradas = await Asistencia.findAll({
+    where: { id_historial },
+  });
+
+  const idsAsistentes = asistenciasRegistradas.map(a => a.id_estudiante);
+
+  const estudiantesNoAsistieron = estudiantesGrupo.filter(est => !idsAsistentes.includes(est.id_estudiante));
+
+  const registroFaltas = estudiantesNoAsistieron.map(est => ({
+    id_estudiante: est.id_estudiante,
+    hora: Timestamp.now(),
+    id_historial,
+    estado: false,
+  }));
+
+  await Asistencia.bulkCreate(registroFaltas);
+
+  return {
+    success: true,
+    mensaje: "Llamado de lista finalizado. Registros completados."
+  };
+}
+
+
 module.exports = {
     crearGrupo,
     editarGrupo,
@@ -321,5 +371,6 @@ module.exports = {
     consultarGruposPorAsignatura,
     consultarGruposPorEstudiante,
     consultarEstudiantesPorId,
-    iniciarLlamadoLista
+    iniciarLlamadoLista,
+    detenerLlamadoLista
 }
