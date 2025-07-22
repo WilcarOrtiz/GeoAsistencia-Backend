@@ -3,7 +3,6 @@ const { validarExistencia, validarEstadoActivo } = require("../utils/validacione
 const asociarHorariosAGrupo = require("../utils/helpers/asociarHorarios");
 const { Sequelize, Op } = require("sequelize");
 const validarGrupo = require("../utils/validaciones/validarGrupo");
-const { Timestamp } = require("firebase-admin/firestore");
 
 async function crearGrupo(datos) {
     const { id_asignatura, id_docente, codigo, horarios } = datos;

@@ -146,7 +146,6 @@ async function detenerLlamadoLista(req, res) {
  
 }
 
-
 module.exports = {
     crearGrupo,
     editarGrupo,
