@@ -16,7 +16,13 @@ const { encontrarRegistroEnModelo } = require("../utils/helpers/modeloHelper");
 async function obtenerEstudiantesNoAsignadosAGrupo(id_asignatura) {
   //Consultar estudiantes que no pertenezcan a un grupo de la asignatura
   try {
-    if (!(await encontrarRegistroEnModelo(Asignatura, id_asignatura))) {
+    if (
+      !(await encontrarRegistroEnModelo(
+        Asignatura,
+        id_asignatura,
+        "Asignatura"
+      ))
+    ) {
       throw new Error("La asignatura no existe.");
     }
 
@@ -53,8 +59,13 @@ async function obtenerEstudiantesNoAsignadosAGrupo(id_asignatura) {
 async function asignarGruposDeClase(id_estudiante, grupos) {
   const transaction = await sequelize.transaction();
   try {
-    // 1. Validar existencia del estudiante
-    if (!(await encontrarRegistroEnModelo(Estudiante, id_estudiante))) {
+    if (
+      !(await encontrarRegistroEnModelo(
+        Estudiante,
+        id_estudiante,
+        "El estudiante"
+      ))
+    ) {
       throw new Error("El estudiante no existe.");
     }
 

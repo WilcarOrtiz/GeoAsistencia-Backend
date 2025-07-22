@@ -1,4 +1,3 @@
-// utils/modeloPorRol.js
 const { Usuario } = require("../../models");
 const { Op } = require("sequelize");
 
@@ -11,13 +10,18 @@ async function existeUsuarioCorreoIdentificacion(
     [Op.or]: [{ correo }, { identificacion }],
   };
 
-  // Si mandas id_usuario, excluye ese registro
+  // Excluye el usuario actual (para edición)
   if (id_usuario) {
     whereCondition.id_usuario = { [Op.ne]: id_usuario };
   }
 
   const existente = await Usuario.findOne({ where: whereCondition });
-  return !!existente; // true si existe otro usuario con ese correo o identificación
+
+  if (existente) {
+    throw new Error(
+      `Ya existe un usuario con el correo "${correo}" o la identificación "${identificacion}".`
+    );
+  }
 }
 
 module.exports = {

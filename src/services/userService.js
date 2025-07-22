@@ -1,15 +1,13 @@
-const { Usuario, Rol } = require("../models");
 const { Op } = require("sequelize");
+const { Usuario, Rol, sequelize } = require("../models");
 const {
   obtenerModeloPorRol,
-  buscarRolPorNombre,
   encontrarRegistroEnModelo,
+  buscarRegistroPorCondicion,
 } = require("../utils/helpers/modeloHelper");
-
 const {
   existeUsuarioCorreoIdentificacion,
 } = require("../utils/validaciones/validarExistenciaCorreoIdentificacion");
-
 const {
   crearUsuarioFirebase,
   actualizarUsuarioFirebase,
@@ -18,6 +16,8 @@ const {
 } = require("../utils/helpers/firebaseHelper");
 
 async function crearUsuario(data) {
+  const transaction = await sequelize.transaction();
+
   try {
     const {
       identificacion,
@@ -26,54 +26,51 @@ async function crearUsuario(data) {
       correo,
       contrasena,
       rol,
-      estado,
+      estado = true,
       uuid_telefono,
     } = data;
 
-    // VALIDACIONES DE EXISTENCIA
-    if (
-      (await existeCorreoEnFirebase(correo)) ||
-      (await existeUsuarioCorreoIdentificacion(correo, identificacion))
-    ) {
-      throw new Error(
-        (await existeCorreoEnFirebase(correo))
-          ? "El correo ya está registrado en Firebase."
-          : "El correo o la identificación ya están registrados."
-      );
-    }
-
-    //  VALIDACION EXISTENCIA DEL ROL (helper)
-    const rol_supabase = await buscarRolPorNombre(rol);
-    if (!rol_supabase) throw new Error(`Rol ${rol} no encontrado`);
-
-    // CREACION EN FIREBASE - ASIGNACION DE CLAIMS (Helper)
+    await existeCorreoEnFirebase(correo);
+    await existeUsuarioCorreoIdentificacion(correo, identificacion);
+    const rol_supabase = await buscarRegistroPorCondicion(
+      Rol,
+      { nombre: rol.toUpperCase() },
+      "Rol"
+    );
     const firebaseUser = await crearUsuarioFirebase({
       correo,
       contrasena,
       displayName: `${nombres} ${apellidos}`,
     });
-    await asignarClaims(firebaseUser.uid, { rol, uuid_telefono });
     const id_usuario = firebaseUser.uid;
 
-    // CREACION EN BASE DE DATOS
-    await Usuario.create({
-      id_usuario: id_usuario,
-      identificacion,
-      nombres,
-      apellidos,
-      correo,
-      id_rol: rol_supabase.id_rol,
-    });
+    await asignarClaims(id_usuario, { rol, uuid_telefono });
+    await Usuario.create(
+      {
+        id_usuario,
+        identificacion,
+        nombres,
+        apellidos,
+        correo,
+        id_rol: rol_supabase.id_rol,
+      },
+      { transaction }
+    );
 
     const Modelo = obtenerModeloPorRol(rol.toUpperCase());
     const idField =
       rol.toUpperCase() === "DOCENTE" ? "id_docente" : "id_estudiante";
 
-    await Modelo.create({
-      [idField]: id_usuario,
-      uuid_telefono: uuid_telefono ?? null,
-      estado,
-    });
+    await Modelo.create(
+      {
+        [idField]: id_usuario,
+        uuid_telefono: uuid_telefono ?? null,
+        estado,
+      },
+      { transaction }
+    );
+
+    await transaction.commit();
 
     return {
       mensaje: "Usuario registrado correctamente.",
@@ -81,6 +78,7 @@ async function crearUsuario(data) {
       id_rol: rol_supabase.id_rol,
     };
   } catch (error) {
+    await transaction.rollback();
     throw new Error(`Error al crear usuario: ${error.message}`);
   }
 }
@@ -98,33 +96,24 @@ async function editarUsuario(data, id_usuario) {
     } = data;
 
     // VALIDACIONES
-    const usuario = await encontrarRegistroEnModelo(Usuario, id_usuario);
-    if (!usuario) {
-      throw new Error("El usuario no existe.");
-    }
-
+    const usuario = await encontrarRegistroEnModelo(
+      Usuario,
+      id_usuario,
+      "El Usuario"
+    );
     if (
       (correo && correo !== usuario.correo) ||
       (identificacion && identificacion !== usuario.identificacion)
     ) {
-      const correoEnFirebase =
-        correo && correo !== usuario.correo
-          ? await existeCorreoEnFirebase(correo)
-          : false;
+      if (correo && correo !== usuario.correo) {
+        await existeCorreoEnFirebase(correo);
+      }
 
-      const duplicadoBD = await existeUsuarioCorreoIdentificacion(
+      await existeUsuarioCorreoIdentificacion(
         correo,
         identificacion,
         usuario.id_usuario
       );
-
-      if (correoEnFirebase || duplicadoBD) {
-        throw new Error(
-          correoEnFirebase
-            ? "El correo ya está registrado en Firebase para otro usuario."
-            : "El correo o la identificación ya están registrados para otro usuario."
-        );
-      }
     }
 
     // ACTUALIZACIONES (en firebase, modelo usuario y modelo específico)
@@ -146,12 +135,17 @@ async function editarUsuario(data, id_usuario) {
       estado,
     });
 
-    const rolUsuario = await encontrarRegistroEnModelo(Rol, usuario.id_rol);
+    const rolUsuario = await encontrarRegistroEnModelo(
+      Rol,
+      usuario.id_rol,
+      "El rol"
+    );
     const Modelo = obtenerModeloPorRol(rolUsuario.nombre);
-    if (!Modelo) {
-      throw new Error("No se encontró el modelo para el rol del usuario.");
-    }
-    const registro = await encontrarRegistroEnModelo(Modelo, id_usuario);
+    const registro = await encontrarRegistroEnModelo(
+      Modelo,
+      id_usuario,
+      "el registro asociado"
+    );
     if (registro) {
       await registro.update({
         uuid_telefono: uuid_telefono || null,
@@ -170,15 +164,22 @@ async function editarUsuario(data, id_usuario) {
 
 async function cambiarEstadoUsuario(id_usuario) {
   try {
-    const usuario = await encontrarRegistroEnModelo(Usuario, id_usuario);
-    if (!usuario) throw new Error("El usuario no existe.");
-
-    const rol = await encontrarRegistroEnModelo(Rol, usuario.id_rol);
-    if (!rol) throw new Error("Rol no válido.");
+    const usuario = await encontrarRegistroEnModelo(
+      Usuario,
+      id_usuario,
+      "El Usuario"
+    );
+    const rol = await encontrarRegistroEnModelo(
+      Rol,
+      usuario.id_rol,
+      "El rol del usuario"
+    );
     const Modelo = obtenerModeloPorRol(rol.nombre);
-
-    const registro = await encontrarRegistroEnModelo(Modelo, id_usuario);
-    if (!registro) throw new Error(`${rol.nombre} no encontrado.`);
+    const registro = await encontrarRegistroEnModelo(
+      Modelo,
+      id_usuario,
+      "el registro asociado"
+    );
 
     registro.estado = !registro.estado;
     await registro.save();
@@ -242,18 +243,21 @@ async function obtenerUsuarios(filtros = {}) {
 
     // 1. ID usuario
     if (filtros.id_usuario) {
-      const existeUsuario = await encontrarRegistroEnModelo(
+      await encontrarRegistroEnModelo(
         Usuario,
-        filtros.id_usuario
+        filtros.id_usuario,
+        "El Usuario"
       );
-      if (!existeUsuario) throw new Error("El usuario no existe.");
       whereConditionUsuario.id_usuario = filtros.id_usuario;
     }
 
     // 2. Rol
     if (filtros.rol) {
-      const rol = await buscarRolPorNombre(filtros.rol);
-      if (!rol) throw new Error(`Rol ${filtros.rol} no encontrado.`);
+      const rol = await buscarRegistroPorCondicion(
+        Rol,
+        { nombre: filtros.rol.toUpperCase() },
+        "Rol"
+      );
       whereConditionUsuario.id_rol = rol.id_rol;
       ModeloAsociado = obtenerModeloPorRol(rol.nombre);
     }

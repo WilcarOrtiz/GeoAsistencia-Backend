@@ -16,20 +16,36 @@ function obtenerModeloPorRol(rolNombre) {
   return modelo;
 }
 
-async function buscarRolPorNombre(nombreRol) {
-  const rol = await Rol.findOne({
-    where: { nombre: nombreRol.toUpperCase() },
-  });
-  return rol; // Devuelve el objeto Rol o null si no existe
+async function buscarRegistroPorCondicion(
+  Model,
+  where,
+  nombreModelo = "Registro"
+) {
+  const registro = await Model.findOne({ where });
+
+  if (!registro) {
+    throw new Error(
+      `${nombreModelo} no existe con la condición: ${JSON.stringify(where)}.`
+    );
+  }
+
+  return registro;
 }
 
-async function encontrarRegistroEnModelo(Model, id) {
+async function encontrarRegistroEnModelo(
+  Model,
+  id,
+  nombreModelo = "El registro"
+) {
   const record = await Model.findByPk(id);
-  return record || null; // Retorna null si no existe
+  if (!record) {
+    throw new Error(`${nombreModelo} con ID ${id} no existe.`);
+  }
+  return record;
 }
 
 module.exports = {
   obtenerModeloPorRol,
-  buscarRolPorNombre,
+  buscarRegistroPorCondicion,
   encontrarRegistroEnModelo,
 };

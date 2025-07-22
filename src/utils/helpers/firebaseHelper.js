@@ -1,12 +1,16 @@
 const admin = require("../../firebase/firebase");
 
 async function crearUsuarioFirebase({ correo, contrasena, displayName }) {
-  const user = await admin.auth().createUser({
-    email: correo,
-    password: contrasena,
-    displayName,
-  });
-  return user;
+  try {
+    const user = await admin.auth().createUser({
+      email: correo,
+      password: contrasena,
+      displayName,
+    });
+    return user;
+  } catch (error) {
+    throw new Error(`Error al crear el usuario en Firebase: ${error.message}`);
+  }
 }
 
 async function actualizarUsuarioFirebase(
@@ -27,12 +31,14 @@ async function asignarClaims(uid, claims) {
 async function existeCorreoEnFirebase(correo) {
   try {
     await admin.auth().getUserByEmail(correo);
-    return true;
+    throw new Error(`El correo ${correo} ya está registrado en Firebase.`);
   } catch (error) {
     if (error.code === "auth/user-not-found") {
-      return false;
+      return;
     }
-    throw error;
+    throw new Error(
+      `Error al verificar el correo en Firebase: ${error.message}`
+    );
   }
 }
 
