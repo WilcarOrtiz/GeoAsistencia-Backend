@@ -27,14 +27,6 @@ const { verifyToken } = require("../../middlewares/verifyToken");
  *               id_grupo:
  *                 type: integer
  *                 example: 1
- *               fecha:
- *                 type: string
- *                 format: date
- *                 example: "2025-07-21"
- *               hora:
- *                 type: string
- *                 format: time
- *                 example: "08:15:00"
  *     responses:
  *       200:
  *         description: Asistencia registrada exitosamente
@@ -100,17 +92,9 @@ router.post(
  *               id_grupo:
  *                 type: integer
  *                 example: 22
- *               fecha:
- *                 type: string
- *                 format: date
- *                 example: "2025-07-21"
  *               id_estudiante:
  *                 type: string
  *                 example: "Hr3BVwCLocRJ5amsEuj1mmUJCci2"
- *               hora:
- *                 type: string
- *                 format: time
- *                 example: "08:15:00"
  *     responses:
  *       200:
  *         description: Estado de asistencia actualizado
@@ -131,5 +115,55 @@ router.post(
  *         description: Error interno del servidor
  */
 router.patch("/cambiarEstado", asistenciaController.cambiarEstadoAsistencia);
+
+/**
+ * @openapi
+ * /asistencia/validarUbicacion:
+ *   post:
+ *     tags:
+ *       - Asistencia
+ *     summary: Validar la ubicación del usuario
+ *     description: Verifica si el usuario se encuentra dentro de la geocerca de la universidad.
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - latitud
+ *               - longitud
+ *             properties:
+ *               latitud:
+ *                 type: number
+ *                 example: 10.476013
+ *               longitud:
+ *                 type: number
+ *                 example: -73.259493
+ *     responses:
+ *       200:
+ *         description: Resultado de la validación de geocerca.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 mensaje:
+ *                   type: string
+ *                   example: "Está dentro de la geocerca"
+ *                 dentro:
+ *                   type: boolean
+ *                   example: true
+ *       400:
+ *         description: Error de validación o parámetros incorrectos.
+ *       500:
+ *         description: Error interno del servidor.
+ */
+router.post("/validarUbicacion", asistenciaController.validarUbicacion);
 
 module.exports = router;

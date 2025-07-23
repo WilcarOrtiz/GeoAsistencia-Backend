@@ -1,20 +1,62 @@
-const { Grupo, Historial, Asistencia, Estudiante } = require("../models");
+const {
+  Grupo,
+  Historial,
+  Asistencia,
+  Estudiante,
+  Horario,
+} = require("../models");
+
 const {
   encontrarRegistroEnModelo,
   buscarRegistroPorCondicion,
 } = require("../utils/helpers/modeloHelper");
 
-async function registrarAsistencia(datos, id_estudiante) {
-  try {
-    const { id_grupo, fecha, hora } = datos;
+const {
+  obtenerFechaYHoraActual,
+} = require("../utils/helpers/obtenerFechaHoraActual");
+const validarHorario = require("../utils/validaciones/validarHorario");
+const {
+  validarUbicacion: validarUbicacionUtils,
+} = require("../utils/validaciones/validarUbicacion");
 
+async function esHoraClaseValida(id_grupo, fecha, hora) {
+  const grupo = await Grupo.findByPk(id_grupo, {
+    include: {
+      model: Horario,
+      as: "horarios",
+      attributes: ["id_dia", "hora_inicio", "hora_fin"],
+    },
+  });
+
+  const fechaSolicitud = new Date(`${fecha}T${hora}`);
+
+  const enHorario = grupo.horarios.some((h) => {
+    const horarioNormalizado = {
+      ...h.dataValues,
+      id_dia: Number(h.id_dia), // <- convertimos a número
+      hora_inicio: h.hora_inicio.slice(0, 5),
+      hora_fin: h.hora_fin.slice(0, 5),
+    };
+    return validarHorario(horarioNormalizado, fechaSolicitud);
+  });
+
+  if (!enHorario) {
+    throw new Error("No puede realizar acciones fuera del horario de clases.");
+  }
+}
+
+async function registrarAsistencia(id_grupo, id_estudiante) {
+  try {
+    const { fecha, hora } = obtenerFechaYHoraActual();
     await encontrarRegistroEnModelo(Estudiante, id_estudiante, "El estudiante");
 
     const grupoClase = await encontrarRegistroEnModelo(
       Grupo,
       id_grupo,
-      "El grupo de clase"
+      "El grupo "
     );
+
+    await esHoraClaseValida(id_grupo, fecha, hora);
 
     if (grupoClase.estado_asistencia) {
       const historial_asistencia = await buscarRegistroPorCondicion(
@@ -42,18 +84,20 @@ async function registrarAsistencia(datos, id_estudiante) {
   }
 }
 
-async function cambiarEstadoAsistencia(datos) {
+async function cambiarEstadoAsistencia(id_grupo, id_estudiante) {
   try {
-    const { id_grupo, fecha, hora, id_estudiante } = datos;
+    const { fecha, hora } = obtenerFechaYHoraActual();
 
     const estudiante = await encontrarRegistroEnModelo(
-      Estudiante,
+      Asistencia,
       id_estudiante,
       "El estudiante"
     );
 
     await encontrarRegistroEnModelo(Grupo, id_grupo, "El grupo de clase");
-    const historial_asistencia = await buscarRegistroPorCondicion(
+    await esHoraClaseValida(id_grupo, fecha, hora);
+
+    const historial = await buscarRegistroPorCondicion(
       Historial,
       { id_grupo, fecha },
       "La lista de asistencia"
@@ -63,7 +107,7 @@ async function cambiarEstadoAsistencia(datos) {
       Asistencia,
       {
         id_estudiante: estudiante.id_estudiante,
-        id_historial_asistencia: historial_asistencia.id_historial_asistencia,
+        id_historial_asistencia: historial.id_historial_asistencia,
       },
       "La asistencia"
     );
@@ -82,11 +126,29 @@ async function cambiarEstadoAsistencia(datos) {
   }
 }
 
-async function validarUbicacion(datos) {
+async function generarAsistenciaManualmente(id_grupo, identificacion) {
   try {
-    return resultados;
+    const estudiante = await buscarRegistroPorCondicion(
+      Estudiante,
+      identificacion,
+      "El estudiante"
+    );
+    await encontrarRegistroEnModelo(Grupo, id_grupo, "El grupo de clase");
+    cambiarEstadoAsistencia(id_grupo, estudiante.id_estudiante);
+  } catch (error) {}
+}
+
+async function validarUbicacion(latitud, longitud) {
+  try {
+    const dentro = validarUbicacionUtils(latitud, longitud);
+    return {
+      mensaje: dentro
+        ? "Está dentro de la geocerca"
+        : "Está fuera de la geocerca",
+      dentro,
+    };
   } catch (error) {
-    throw new Error(`Error al validar la ubicación ${error.message}`);
+    throw new Error(`Error al validar la ubicación: ${error.message}`);
   }
 }
 
@@ -94,4 +156,5 @@ module.exports = {
   registrarAsistencia,
   cambiarEstadoAsistencia,
   validarUbicacion,
+  generarAsistenciaManualmente,
 };
