@@ -1,3 +1,4 @@
+const { validarExistencia } = require("../utils/validaciones/validarExistenciaModelo");
 const { Asignatura, Docente, Grupo} = require("../models");
 const { Sequelize } = require("sequelize");
 
@@ -17,10 +18,9 @@ async function crearAsignatura(datos) {
 
 async function editarAsignatura(id_asignatura, datos) {
   const { codigo, nombre } = datos;
-  const asignaturaExistente = await Asignatura.findByPk(id_asignatura);
-  if (!asignaturaExistente) {
-      throw new Error("La asignatura no está registrada.");
-  }
+
+  const asignaturaExistente = await validarExistencia(Asignatura, id_asignatura, "La asignatura");
+
   if (asignaturaExistente.nombre !== nombre) {
       const nombreExistente = await Asignatura.findOne({where:{nombre}});
       if (nombreExistente) {
@@ -41,11 +41,9 @@ async function editarAsignatura(id_asignatura, datos) {
 }
 
 async function habilitarAsignatura(id_asignatura, estado) {
-  const asignaturaExistente = await Asignatura.findByPk(id_asignatura);
-  if (!asignaturaExistente) {
-      throw new Error("La asignatura no está registrada.");
-  } 
+  const asignaturaExistente = await validarExistencia(Asignatura, id_asignatura, "La asignatura");
   await asignaturaExistente.update({estado: estado});
+
   return {
       success: true,
       mensaje: estado ? "Asignatura habilitada correctamente." : "Asignatura deshabilitada correctamente.",
@@ -86,10 +84,7 @@ async function consultarAsignaturasActivas() {
 }
 
 async function consultarAsignaturasPorDocente(id_docente) {
-  const docenteExistente = await Docente.findByPk(id_docente);
-  if (!docenteExistente) {
-    throw new Error("El docente no está registrado.");
-  }
+  await validarExistencia(Docente, id_docente, "El docente");
   const asignaturas = await Asignatura.findAll({
     include: [
       {
@@ -125,10 +120,7 @@ async function consultarAsignaturasPorDocente(id_docente) {
 }
 
 async function consultarAsignaturaPorId(id_asignatura) {
-  const asignaturaExistente = await Asignatura.findByPk(id_asignatura);
-  if (!asignaturaExistente) {
-    throw new Error("La asignatura no está registrada.");
-  }
+  const asignaturaExistente = await validarExistencia(Asignatura, id_asignatura, "La asignatura");
 
   return {
     success: true,
@@ -166,12 +158,12 @@ async function crearAsignaturaMasivamente(datos) {
 }
 
 module.exports = {
-    crearAsignatura,
-    editarAsignatura,
-    habilitarAsignatura,
-    consultarAsignaturas,
-    consultarAsignaturasActivas,
-    consultarAsignaturasPorDocente,
-    consultarAsignaturaPorId,
-    crearAsignaturaMasivamente
+  crearAsignatura,
+  editarAsignatura,
+  habilitarAsignatura,
+  consultarAsignaturas,
+  consultarAsignaturasActivas,
+  consultarAsignaturasPorDocente,
+  consultarAsignaturaPorId,
+  crearAsignaturaMasivamente
 }

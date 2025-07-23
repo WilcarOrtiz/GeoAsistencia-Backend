@@ -37,6 +37,7 @@ const options = {
     "./src/schemas/horarioSchema.js",
     "./src/schemas/historialSchema.js",
     "./src/v1/routes/asistenciaRoutes.js",
+    "./src/v1/routes/historialRoutes.js",
   ],
 };
 

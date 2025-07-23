@@ -1,6 +1,6 @@
+const grupoController = require("../../controllers/grupoController");
 const express = require("express");
 const router = express.Router();
-const grupoController = require("../../controllers/grupoController");
 
 /**
  * @openapi
@@ -764,7 +764,7 @@ router.patch("/:id_grupo/asistencia", grupoController.iniciarLlamadoLista);
  *         schema:
  *           type: integer
  *     responses:
- *       201:
+ *       200:
  *         description: Llamado a lista detenido correctamente
  *         content:
  *           application/json:
@@ -799,4 +799,55 @@ router.patch("/:id_grupo/asistencia", grupoController.iniciarLlamadoLista);
  *                   example: "Error interno del servidor: ..."
  */
 router.patch("/:id_grupo/asistencia/detener", grupoController.detenerLlamadoLista);
+
+/**
+ * @openapi
+ * /grupo/{id_grupo}/asistencia/cancelar:
+ *   patch:
+ *     summary: Cancelar llamado a lista
+ *     description: Cancelar el llamado a lista de un grupo.
+ *     tags: [Grupos]
+ *     parameters:
+ *       - in: path
+ *         name: id_grupo
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Llamado a lista cancelado correctamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 mensaje:
+ *                   type: string
+ *                   example: Cancelado llamado a lista correctamente.
+ *       404:
+ *         description: Grupo no encontrado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: El grupo no está registrado.
+ *       500:
+ *         description: Error interno del servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Error interno del servidor: ..."
+ */
+router.patch("/:id_grupo/asistencia/cancelar", grupoController.cancelarLlamadoLista);
+
 module.exports = router;

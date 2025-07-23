@@ -1,7 +1,7 @@
-const grupoService = require("../services/grupoService");
-const validarGrupo = require("../utils/validaciones/validarGrupo");
 const validarParametros = require("../utils/validaciones/validarParametros");
+const validarGrupo = require("../utils/validaciones/validarGrupo");
 const manejarError = require("../utils/handlers/manejadorError");
+const grupoService = require("../services/grupoService");
 
 async function crearGrupo(req, res) {
   try {
@@ -131,7 +131,6 @@ async function iniciarLlamadoLista(req, res) {
   } catch (error) {
     return manejarError(res, error);
   }
- 
 }
 
 async function detenerLlamadoLista(req, res) {
@@ -143,21 +142,31 @@ async function detenerLlamadoLista(req, res) {
   } catch (error) {
     return manejarError(res, error);
   }
- 
 }
 
+async function cancelarLlamadoLista(req, res) {
+  try {
+    const { id_grupo } = req.params;
+    if (!validarParametros(req, res, ["id_grupo"])) return;
+    const historialCancelado = await grupoService.cancelarLlamadoLista(id_grupo);
+    return res.status(200).json(historialCancelado);
+  } catch (error) {
+    return manejarError(res, error);
+  }
+}
 
 module.exports = {
-    crearGrupo,
-    editarGrupo,
-    eliminarGrupo,
-    eliminarEstudianteDeGrupo,
-    trasladarEstudianteDeGrupo,
-    consultarGrupoPorId,
-    consultarGruposPorDocente,
-    consultarGruposPorAsignatura,
-    consultarGruposPorEstudiante,
-    consultarEstudiantesPorId,
-    iniciarLlamadoLista,
-    detenerLlamadoLista
+  crearGrupo,
+  editarGrupo,
+  eliminarGrupo,
+  eliminarEstudianteDeGrupo,
+  trasladarEstudianteDeGrupo,
+  consultarGrupoPorId,
+  consultarGruposPorDocente,
+  consultarGruposPorAsignatura,
+  consultarGruposPorEstudiante,
+  consultarEstudiantesPorId,
+  iniciarLlamadoLista,
+  detenerLlamadoLista,
+  cancelarLlamadoLista
 }

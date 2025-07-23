@@ -12,6 +12,7 @@ const asignaturaRoutes = require("./v1/routes/asignaturaRoutes");
 const grupoRoutes = require("./v1/routes/grupoRoutes");
 const userRoutes = require("./v1/routes/userRoutes");
 const asistenciaRoutes = require("./v1/routes/asistenciaRoutes");
+const historialRoutes = require("./v1/routes/historialRoutes");
 
 async function main() {
   try {
@@ -26,6 +27,7 @@ async function main() {
     app.use("/docente", docenteRoutes);
     app.use("/asignatura", asignaturaRoutes);
     app.use("/grupo", grupoRoutes);
+    app.use("/historial", historialRoutes);
 
     app.use(
       cors({

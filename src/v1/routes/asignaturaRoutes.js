@@ -174,10 +174,7 @@ router.put("/editar/:id_asignatura", asignaturaController.editarAsignatura);
  *                   type: string
  *                   example: "Error interno del servidor: ..."
  */
-router.patch(
-  "/habilitar/:id_asignatura",
-  asignaturaController.habilitarAsignatura
-);
+router.patch("/habilitar/:id_asignatura", asignaturaController.habilitarAsignatura);
 
 /**
  * @openapi
@@ -295,10 +292,7 @@ router.get("/activas", asignaturaController.consultarAsignaturasActivas);
  *                   type: string
  *                   example: "Error interno del servidor: ..."
  */
-router.get(
-  "/docente/:id_docente",
-  asignaturaController.consultarAsignaturasPorDocente
-);
+router.get("/docente/:id_docente", asignaturaController.consultarAsignaturasPorDocente);
 
 /**
  * @openapi
@@ -422,10 +416,6 @@ router.get("/:id_asignatura", asignaturaController.consultarAsignaturaPorId);
  *                   type: string
  *                   example: "Error al procesar archivo Excel: ..."
  */
-router.post(
-  "/cargaMasivaAsignaturas",
-  upload.single("archivo"),
-  asignaturaController.crearAsignaturaMasivamente
-);
+router.post("/cargaMasivaAsignaturas", upload.single("archivo"), asignaturaController.crearAsignaturaMasivamente);
 
 module.exports = router;
