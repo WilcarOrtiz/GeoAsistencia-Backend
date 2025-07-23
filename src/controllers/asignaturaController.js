@@ -1,8 +1,8 @@
+const validarParametros = require("../utils/validaciones/validarParametros");
+const validarAsignatura = require("../utils/validaciones/validarAsignatura");
 const asignaturaService = require("../services/asignaturaService");
 const manejarError = require("../utils/handlers/manejadorError");
-const validarAsignatura = require("../utils/validaciones/validarAsignatura");
 const xlsx = require("xlsx");
-const validarParametros = require("../utils/validaciones/validarParametros");
 
 async function crearAsignatura(req, res) {
     try {
