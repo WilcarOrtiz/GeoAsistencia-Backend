@@ -28,7 +28,6 @@ const options = {
     "./src/v1/routes/userRoutes.js",
     "./src/v1/routes/docentesRoutes.js",
     "./src/v1/routes/estudianteRoutes.js",
-    "./src/v1/routes/authRoutes.js",
     "./src/v1/routes/asignaturaRoutes.js",
     "./src/schemas/asignaturaSchema.js",
     "./src/schemas/userSchema.js",

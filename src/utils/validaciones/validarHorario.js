@@ -5,4 +5,4 @@ function validarHorario(horario, fecha) {
   return horaActual >= horario.hora_inicio && horaActual <= horario.hora_fin;
 }
 
-module.exports =  validarHorario;
+module.exports = validarHorario;

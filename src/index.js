@@ -8,7 +8,6 @@ const { sequelize } = require("./models");
 
 const estudianteRoutes = require("./v1/routes/estudianteRoutes");
 const docenteRoutes = require("./v1/routes/docentesRoutes");
-const authRoutes = require("./v1/routes/authRoutes");
 const asignaturaRoutes = require("./v1/routes/asignaturaRoutes");
 const grupoRoutes = require("./v1/routes/grupoRoutes");
 const userRoutes = require("./v1/routes/userRoutes");
@@ -25,7 +24,6 @@ async function main() {
     app.use("/asistencia", asistenciaRoutes);
     app.use("/estudiante", estudianteRoutes);
     app.use("/docente", docenteRoutes);
-    app.use("/auth", authRoutes);
     app.use("/asignatura", asignaturaRoutes);
     app.use("/grupo", grupoRoutes);
 
