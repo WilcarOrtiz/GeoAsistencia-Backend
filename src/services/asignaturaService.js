@@ -158,12 +158,12 @@ async function crearAsignaturaMasivamente(datos) {
 }
 
 module.exports = {
-    crearAsignatura,
-    editarAsignatura,
-    habilitarAsignatura,
-    consultarAsignaturas,
-    consultarAsignaturasActivas,
-    consultarAsignaturasPorDocente,
-    consultarAsignaturaPorId,
-    crearAsignaturaMasivamente
+  crearAsignatura,
+  editarAsignatura,
+  habilitarAsignatura,
+  consultarAsignaturas,
+  consultarAsignaturasActivas,
+  consultarAsignaturasPorDocente,
+  consultarAsignaturaPorId,
+  crearAsignaturaMasivamente
 }
