@@ -146,6 +146,17 @@ async function detenerLlamadoLista(req, res) {
  
 }
 
+async function cancelarLlamadoLista(req, res) {
+  try {
+    const { id_grupo } = req.params;
+    if (!validarParametros(req, res, ["id_grupo"])) return;
+    const historialCancelado = await grupoService.cancelarLlamadoLista(id_grupo);
+    return res.status(200).json(historialCancelado);
+  } catch (error) {
+    return manejarError(res, error);
+  }
+}
+
 module.exports = {
     crearGrupo,
     editarGrupo,
@@ -158,5 +169,6 @@ module.exports = {
     consultarGruposPorEstudiante,
     consultarEstudiantesPorId,
     iniciarLlamadoLista,
-    detenerLlamadoLista
+    detenerLlamadoLista,
+    cancelarLlamadoLista
 }

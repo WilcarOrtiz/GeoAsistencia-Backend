@@ -360,6 +360,37 @@ async function detenerLlamadoLista(id_grupo) {
   };
 }
 
+async function cancelarLlamadoLista(id_grupo) {
+  const grupoExistente = await validarExistencia(Grupo, id_grupo, "El grupo");
+
+  await grupoExistente.update({ estado_asistencia: false });
+
+  const historial = await Historial.findOne({
+    where: {
+      id_grupo,
+      fecha: new Date().toISOString().split('T')[0], 
+    },
+  });
+
+  if (!historial) {
+    throw new Error("No se encontró un historial de asistencia para este grupo en esta fecha.");
+  }
+
+  await historial.destroy();
+  const id_historial_asistencia = historial.id_historial_asistencia;
+
+  const asistenciasRegistradas = await Asistencia.findAll({
+    where: { id_historial_asistencia },
+  });
+
+  await asistenciasRegistradas.map(a => { a.destroy(); });
+
+  return {
+    success: true,
+    mensaje: "Llamado de lista cancelado."
+  };
+}
+
 
 module.exports = {
     crearGrupo,
@@ -373,5 +404,6 @@ module.exports = {
     consultarGruposPorEstudiante,
     consultarEstudiantesPorId,
     iniciarLlamadoLista,
-    detenerLlamadoLista
+    detenerLlamadoLista,
+    cancelarLlamadoLista
 }
