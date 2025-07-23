@@ -69,7 +69,7 @@ const {
  *                         example: "4"
  *                       motivo:
  *                         type: string
- *                         example: "Conflicto: ya seleccionó otro grupo de la misma asignatura"
+ *                         example: "Este grupo ya tiene un docente asignado."
  *       400:
  *         description: Error de validación
  *         content:
@@ -122,7 +122,7 @@ router.post(
  *           example: "12345"
  *     responses:
  *       200:
- *         description: Lista de docentes con sus grupos y asignaturas
+ *         description: Lista de docentes con sus asignaturas y grupos
  *         content:
  *           application/json:
  *             schema:
@@ -141,39 +141,47 @@ router.post(
  *                     properties:
  *                       id:
  *                         type: string
- *                         example: "E001"
- *                       nombreCompleto:
- *                         type: string
- *                         example: "Juan Pérez"
- *                       correo:
- *                         type: string
- *                         example: "juan.perez@email.com"
+ *                         example: "8INV6ygSwxV8OOsR4keetq4hv3V2"
  *                       uuidTelefono:
  *                         type: string
- *                         example: "aabbccdd-1122-3344"
+ *                         example: "aabbccdd-1122-3341"
+ *                       identificacion:
+ *                         type: string
+ *                         example: "1111111111"
  *                       estado:
  *                         type: boolean
  *                         example: true
- *                       grupos:
+ *                       nombreCompleto:
+ *                         type: string
+ *                         example: "Wilcar Daniel Ortiz Colpas"
+ *                       correo:
+ *                         type: string
+ *                         example: "daniel@unicesar.edu.co"
+ *                       asignaturas:
  *                         type: array
  *                         items:
  *                           type: object
  *                           properties:
  *                             id:
- *                               type: integer
- *                               example: 5
+ *                               type: string
+ *                               example: "1"
  *                             nombre:
  *                               type: string
- *                               example: "Grupo A"
- *                             asignatura:
- *                               type: object
- *                               properties:
- *                                 id:
- *                                   type: integer
- *                                   example: 10
- *                                 nombre:
- *                                   type: string
- *                                   example: "Programación I"
+ *                               example: "Lógica de Programación IV"
+ *                             grupos:
+ *                               type: array
+ *                               items:
+ *                                 type: object
+ *                                 properties:
+ *                                   id:
+ *                                     type: string
+ *                                     example: "14"
+ *                                   nombre:
+ *                                     type: string
+ *                                     example: "Grupo A"
+ *                                   codigo:
+ *                                     type: string
+ *                                     example: "GRP-A-01"
  *       400:
  *         description: Error en la consulta
  *         content:

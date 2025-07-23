@@ -1,21 +1,14 @@
 const userService = require("../services/userService");
+const manejarError = require("../utils/handlers/manejadorError");
 const xlsx = require("xlsx");
 
 async function registrarUsuario(req, res) {
   try {
     const datos = req.body;
     const resultado = await userService.crearUsuario(datos);
-    res.status(201).json({
-      success: true,
-      message: resultado.mensaje,
-      idUsuario: resultado.idUsuario,
-      rol: resultado.rol,
-    });
+    return res.status(201).json(resultado);
   } catch (error) {
-    res.status(400).json({
-      success: false,
-      error: error.message,
-    });
+    return manejarError(res, error);
   }
 }
 
@@ -23,16 +16,9 @@ async function cambiarEstadoUsuario(req, res) {
   try {
     const { id_usuario } = req.params;
     const resultado = await userService.cambiarEstadoUsuario(id_usuario);
-    res.status(200).json({
-      success: true,
-      message: resultado.mensaje,
-      estado: resultado.estado,
-    });
+    return res.status(200).json(resultado);
   } catch (error) {
-    res.status(400).json({
-      success: false,
-      error: error.message,
-    });
+    return manejarError(res, error);
   }
 }
 
@@ -44,7 +30,7 @@ async function crearUsuarioMasivamente(req, res) {
     const datos = xlsx.utils.sheet_to_json(hoja);
     const resultado = await userService.crearUsuarioMasivamente(datos);
 
-    res.status(200).json({
+    res.status(201).json({
       success: true,
       mensaje: "Carga masiva finalizada.",
       resumen: resultado,
@@ -62,34 +48,19 @@ async function editarUsuario(req, res) {
       datosActualizados,
       id_usuario
     );
-
-    res.status(200).json({
-      success: true,
-      message: resultado.mensaje,
-      idUsuario: resultado.idUsuario,
-    });
+    return res.status(200).json(resultado);
   } catch (error) {
-    res.status(400).json({
-      success: false,
-      error: error.message,
-    });
+    return manejarError(res, error);
   }
 }
 
 async function obtenerUsuarios(req, res) {
   try {
     const filtros = req.query;
-    const usuarios = await userService.obtenerUsuarios(filtros);
-
-    res.status(200).json({
-      success: true,
-      usuarios,
-    });
+    const resultado = await userService.obtenerUsuarios(filtros);
+    return res.status(200).json(resultado);
   } catch (error) {
-    res.status(400).json({
-      success: false,
-      error: error.message,
-    });
+    return manejarError(res, error);
   }
 }
 

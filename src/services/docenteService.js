@@ -1,9 +1,11 @@
 const { Usuario, Docente, Grupo, Asignatura } = require("../models");
 const sequelize = require("../database/supabase/db");
-const { encontrarRegistroEnModelo } = require("../utils/helpers/modeloHelper");
 const {
   formatearUsuariosConAsignaturasYGrupos,
 } = require("../utils/helpers/formatearUsuarioConAsignaturasYGrupos");
+const {
+  validarExistencia,
+} = require("../utils/validaciones/validarExistenciaModelo");
 
 async function docentesActivos() {
   try {
@@ -18,6 +20,7 @@ async function docentesActivos() {
     });
 
     return {
+      success: true,
       mensaje: "Docentes activos",
       docentes: docentes_Activos,
     };
@@ -31,9 +34,7 @@ async function docentesActivos() {
 async function asignarGruposADocente(id_docente, grupos) {
   const transaction = await sequelize.transaction();
   try {
-    if (!(await encontrarRegistroEnModelo(Docente, id_docente, "El docente"))) {
-      throw new Error("El docente no existe.");
-    }
+    await validarExistencia(Docente, id_docente, "El docente");
 
     // 1. Validar existencia de los grupos enviados
     const gruposEncontrados = await Grupo.findAll({
@@ -42,7 +43,7 @@ async function asignarGruposADocente(id_docente, grupos) {
     });
 
     if (!gruposEncontrados.length) {
-      throw new Error("Ninguno de los grupos enviados existe.");
+      throw new Error("El grupo no está en el sistema");
     }
 
     const asignados = [];
@@ -111,7 +112,7 @@ async function consultarDocentesConSusGrupos(id_docente) {
     });
 
     if (id_docente && docentes.length === 0) {
-      throw new Error("El docente no existe.");
+      throw new Error("El docente no está registrado");
     }
 
     const data = formatearUsuariosConAsignaturasYGrupos(docentes, "docente");

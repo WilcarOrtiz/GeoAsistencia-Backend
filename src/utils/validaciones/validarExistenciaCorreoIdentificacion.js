@@ -19,7 +19,7 @@ async function existeUsuarioCorreoIdentificacion(
 
   if (existente) {
     throw new Error(
-      `Ya existe un usuario con el correo "${correo}" o la identificación "${identificacion}".`
+      `Un usuario ya está registrado con el correo "${correo}" o la identificación "${identificacion}".`
     );
   }
 }

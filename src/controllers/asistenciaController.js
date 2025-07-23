@@ -1,23 +1,19 @@
 const asistenciaService = require("../services/asistenciaService");
+const manejarError  = require("../utils/handlers/manejadorError");
 
 async function registrarAsistencia(req, res) {
   try {
     const { id_grupo } = req.body;
     const id_estudiante = req.user.uid;
+    console.log("ID del estudiante:", id_estudiante);
+    console.log("ID del grupo:", id_grupo);
     const resultado = await asistenciaService.registrarAsistencia(
       id_grupo,
       id_estudiante
     );
-    res.status(200).json({
-      success: true,
-      message: resultado.mensaje,
-      docentes: resultado.docentes,
-    });
+    res.status(200).json(resultado);
   } catch (error) {
-    res.status(400).json({
-      success: false,
-      error: error.message,
-    });
+    return manejarError(res, error);
   }
 }
 
@@ -28,15 +24,9 @@ async function cambiarEstadoAsistencia(req, res) {
       id_grupo,
       id_estudiante
     );
-    res.status(200).json({
-      success: true,
-      message: resultado.mensaje,
-    });
+    res.status(200).json(resultado);
   } catch (error) {
-    res.status(400).json({
-      success: false,
-      error: error.message,
-    });
+    return manejarError(res, error);
   }
 }
 
@@ -48,15 +38,9 @@ async function validarUbicacion(req, res) {
       latitud,
       longitud
     );
-    res.status(200).json({
-      success: true,
-      ...resultado,
-    });
+    res.status(200).json(resultado);
   } catch (error) {
-    res.status(400).json({
-      success: false,
-      error: error.message,
-    });
+    return manejarError(res, error);
   }
 }
 

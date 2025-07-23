@@ -13,7 +13,7 @@ function calcularDistanciaHaversine(lat1, lon1, lat2, lon2) {
   return R * c;
 }
 
-function validarUbicacion(latitud, longitud) {
+async function validarUbicacion(latitud, longitud) {
   const UNIVERSIDAD = { lat: 10.451236, lon: -73.261181 };
   const RADIO_GEOCERCA = 100; // metros
 

@@ -10,7 +10,7 @@ const { verifyToken } = require("../../middlewares/verifyToken");
  *     tags:
  *       - Asistencia
  *     summary: Registrar la asistencia de un estudiante en una clase
- *     description: Registra la asistencia de un estudiante autenticado a un grupo/clase en una fecha y hora específica.
+ *     description: Registra la asistencia de un estudiante autenticado a un grupo/clase usando fecha y hora actual.
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -21,11 +21,9 @@ const { verifyToken } = require("../../middlewares/verifyToken");
  *             type: object
  *             required:
  *               - id_grupo
- *               - fecha
- *               - hora
  *             properties:
  *               id_grupo:
- *                 type: integer
+ *                 type: string
  *                 example: 1
  *     responses:
  *       200:
@@ -35,32 +33,21 @@ const { verifyToken } = require("../../middlewares/verifyToken");
  *             schema:
  *               type: object
  *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
  *                 mensaje:
  *                   type: string
- *                   example: "Asistencia Registrada."
- *                 idUsuario:
+ *                   example: "Asistencia Registrada"
+ *                 asistente:
  *                   type: string
  *                   example: "UUID_DEL_ESTUDIANTE"
- *       400:
- *         description: Error de validación o datos incorrectos
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   example: "La asistencia para este grupo está desactivada."
+ *       404:
+ *         description: No se encontró el grupo o el estudiante
+ *       409:
+ *         description: La asistencia ya está registrada
  *       500:
  *         description: Error interno del servidor
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   example: "Error al registrar la asistencia."
  */
 router.post(
   "/registrar",
@@ -75,7 +62,7 @@ router.post(
  *     tags:
  *       - Asistencia
  *     summary: Cambiar el estado de asistencia de un estudiante
- *     description: Alterna el estado (true ↔ false) de la asistencia de un estudiante según el grupo, fecha e identificación.
+ *     description: Alterna el estado (true ↔ false) de la asistencia de un estudiante para una fecha actual.
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -86,7 +73,6 @@ router.post(
  *             type: object
  *             required:
  *               - id_grupo
- *               - fecha
  *               - id_estudiante
  *             properties:
  *               id_grupo:
@@ -103,12 +89,15 @@ router.post(
  *             schema:
  *               type: object
  *               properties:
- *                 mensaje:
- *                   type: string
- *                   example: "Estado de asistencia actualizado."
- *                 estado_asistencia:
+ *                 success:
  *                   type: boolean
  *                   example: true
+ *                 mensaje:
+ *                   type: string
+ *                   example: "Registro de asistencia actualizado."
+ *                 asistente:
+ *                   type: string
+ *                   example: "Hr3BVwCLocRJ5amsEuj1mmUJCci2"
  *       404:
  *         description: No se encontró el registro de asistencia
  *       500:

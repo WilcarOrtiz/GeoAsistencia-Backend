@@ -10,7 +10,7 @@ function obtenerModeloPorRol(rolNombre) {
 
   const modelo = modelos[rolNombre];
   if (!modelo) {
-    throw new Error("Rol sin modelo asociado.");
+    throw new Error("no está definido un modelo para el rol proporcionado.");
   }
 
   return modelo;
@@ -25,7 +25,7 @@ async function buscarRegistroPorCondicion(
 
   if (!registro) {
     throw new Error(
-      `${nombreModelo} no existe con la condición: ${JSON.stringify(where)}.`
+      `${nombreModelo} no está con la condición: ${JSON.stringify(where)}.`
     );
   }
 
@@ -39,7 +39,7 @@ async function encontrarRegistroEnModelo(
 ) {
   const record = await Model.findByPk(id);
   if (!record) {
-    throw new Error(`${nombreModelo} con ID ${id} no existe.`);
+    throw new Error(`${nombreModelo} con ID ${id} no está.`);
   }
   return record;
 }

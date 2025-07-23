@@ -1,18 +1,12 @@
 const docenteService = require("../services/docenteService");
+const manejarError = require("../utils/handlers/manejadorError");
 
 async function docentesActivos(req, res) {
   try {
     const resultado = await docenteService.docentesActivos();
-    res.status(200).json({
-      success: true,
-      message: resultado.mensaje,
-      docentes: resultado.docentes,
-    });
+    res.status(200).json(resultado);
   } catch (error) {
-    res.status(400).json({
-      success: false,
-      error: error.message,
-    });
+    return manejarError(res, error);
   }
 }
 
@@ -34,10 +28,7 @@ async function asignarGruposDeClase(req, res) {
     );
     res.status(200).json(resultado);
   } catch (error) {
-    res.status(400).json({
-      success: false,
-      error: error.message,
-    });
+    return manejarError(res, error);
   }
 }
 
@@ -50,7 +41,7 @@ async function consultarDocentesConSusGrupos(req, res) {
 
     res.status(200).json(data);
   } catch (error) {
-    res.status(400).json({ success: false, error: error.message });
+    return manejarError(res, error);
   }
 }
 

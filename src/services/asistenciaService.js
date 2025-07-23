@@ -5,12 +5,7 @@ const {
   Estudiante,
   Horario,
 } = require("../models");
-
-const {
-  encontrarRegistroEnModelo,
-  buscarRegistroPorCondicion,
-} = require("../utils/helpers/modeloHelper");
-
+const { buscarRegistroPorCondicion } = require("../utils/helpers/modeloHelper");
 const {
   obtenerFechaYHoraActual,
 } = require("../utils/helpers/obtenerFechaHoraActual");
@@ -18,9 +13,14 @@ const validarHorario = require("../utils/validaciones/validarHorario");
 const {
   validarUbicacion: validarUbicacionUtils,
 } = require("../utils/validaciones/validarUbicacion");
+const {
+  validarExistencia,
+} = require("../utils/validaciones/validarExistenciaModelo");
 
 async function esHoraClaseValida(id_grupo, fecha, hora) {
+  
   const grupo = await Grupo.findByPk(id_grupo, {
+    attributes: ["estado_asistencia"],
     include: {
       model: Horario,
       as: "horarios",
@@ -28,12 +28,14 @@ async function esHoraClaseValida(id_grupo, fecha, hora) {
     },
   });
 
-  const fechaSolicitud = new Date(`${fecha}T${hora}`);
+  if (!grupo) {
+    throw new Error("El grupo no está registrado");
+  }
 
+  const fechaSolicitud = new Date(`${fecha}T${hora}`);
   const enHorario = grupo.horarios.some((h) => {
     const horarioNormalizado = {
-      ...h.dataValues,
-      id_dia: Number(h.id_dia), // <- convertimos a número
+      id_dia: Number(h.id_dia),
       hora_inicio: h.hora_inicio.slice(0, 5),
       hora_fin: h.hora_fin.slice(0, 5),
     };
@@ -41,44 +43,39 @@ async function esHoraClaseValida(id_grupo, fecha, hora) {
   });
 
   if (!enHorario) {
-    throw new Error("No puede realizar acciones fuera del horario de clases.");
+    throw new Error("Actualmente no está en horario de clase");
   }
+
+  return { estado_asistencia: grupo.estado_asistencia };
 }
 
 async function registrarAsistencia(id_grupo, id_estudiante) {
   try {
     const { fecha, hora } = obtenerFechaYHoraActual();
-    await encontrarRegistroEnModelo(Estudiante, id_estudiante, "El estudiante");
+    await validarExistencia(Estudiante, id_estudiante, "El estudiante");
+    const grupoClase = await esHoraClaseValida(id_grupo, fecha, hora);
+    if (!grupoClase.estado_asistencia) {
+      throw new Error("La asistencia para este grupo no está habilitada.");
+    }
 
-    const grupoClase = await encontrarRegistroEnModelo(
-      Grupo,
-      id_grupo,
-      "El grupo "
+    const historial_asistencia = await buscarRegistroPorCondicion(
+      Historial,
+      { id_grupo, fecha },
+      "La lista de asistencia"
     );
 
-    await esHoraClaseValida(id_grupo, fecha, hora);
+    await Asistencia.create({
+      id_estudiante,
+      id_historial_asistencia: historial_asistencia.id_historial_asistencia,
+      hora,
+      estado_asistencia: true,
+    });
 
-    if (grupoClase.estado_asistencia) {
-      const historial_asistencia = await buscarRegistroPorCondicion(
-        Historial,
-        { id_grupo, fecha },
-        "La lista de asistencia"
-      );
-
-      await Asistencia.create({
-        id_estudiante: id_estudiante,
-        id_historial_asistencia: historial_asistencia.id_historial_asistencia,
-        id_estudiante,
-        hora,
-        estado_asistencia: true,
-      });
-      return {
-        mensaje: "Asistencia Registrada.",
-        idUsuario: id_estudiante,
-      };
-    } else {
-      throw new Error("La asistencia para este grupo está desactivada.");
-    }
+    return {
+      success: true,
+      mensaje: "Asistencia Registrada",
+      asistente: id_estudiante,
+    };
   } catch (error) {
     throw new Error(`Error al registrar la asistencia ${error.message}`);
   }
@@ -87,14 +84,12 @@ async function registrarAsistencia(id_grupo, id_estudiante) {
 async function cambiarEstadoAsistencia(id_grupo, id_estudiante) {
   try {
     const { fecha, hora } = obtenerFechaYHoraActual();
-
-    const estudiante = await encontrarRegistroEnModelo(
+    const estudiante = await validarExistencia(
       Asistencia,
       id_estudiante,
       "El estudiante"
     );
-
-    await encontrarRegistroEnModelo(Grupo, id_grupo, "El grupo de clase");
+    console.log("Estudiante encontrado:", estudiante.id_estudiante);
     await esHoraClaseValida(id_grupo, fecha, hora);
 
     const historial = await buscarRegistroPorCondicion(
@@ -117,7 +112,9 @@ async function cambiarEstadoAsistencia(id_grupo, id_estudiante) {
     await asistencia.save();
 
     return {
+      success: true,
       mensaje: "Registro de asistencia actualizado.",
+      asistente: id_estudiante,
     };
   } catch (error) {
     throw new Error(
@@ -128,20 +125,22 @@ async function cambiarEstadoAsistencia(id_grupo, id_estudiante) {
 
 async function generarAsistenciaManualmente(id_grupo, identificacion) {
   try {
+    const { fecha, hora } = obtenerFechaYHoraActual();
     const estudiante = await buscarRegistroPorCondicion(
       Estudiante,
       identificacion,
       "El estudiante"
     );
-    await encontrarRegistroEnModelo(Grupo, id_grupo, "El grupo de clase");
-    cambiarEstadoAsistencia(id_grupo, estudiante.id_estudiante);
+    await esHoraClaseValida(id_grupo, fecha, hora);
+    return await cambiarEstadoAsistencia(id_grupo, estudiante.id_estudiante);
   } catch (error) {}
 }
 
 async function validarUbicacion(latitud, longitud) {
   try {
-    const dentro = validarUbicacionUtils(latitud, longitud);
+    const dentro = await validarUbicacionUtils(latitud, longitud);
     return {
+      success: true,
       mensaje: dentro
         ? "Está dentro de la geocerca"
         : "Está fuera de la geocerca",

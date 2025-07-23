@@ -1,19 +1,9 @@
 const { Op } = require("sequelize");
 const { Usuario, Rol, sequelize } = require("../models");
-const {
-  obtenerModeloPorRol,
-  encontrarRegistroEnModelo,
-  buscarRegistroPorCondicion,
-} = require("../utils/helpers/modeloHelper");
-const {
-  existeUsuarioCorreoIdentificacion,
-} = require("../utils/validaciones/validarExistenciaCorreoIdentificacion");
-const {
-  crearUsuarioFirebase,
-  actualizarUsuarioFirebase,
-  asignarClaims,
-  existeCorreoEnFirebase,
-} = require("../utils/helpers/firebaseHelper");
+const { obtenerModeloPorRol,buscarRegistroPorCondicion,} = require("../utils/helpers/modeloHelper");
+const { existeUsuarioCorreoIdentificacion } = require("../utils/validaciones/validarExistenciaCorreoIdentificacion");
+const { crearUsuarioFirebase, actualizarUsuarioFirebase, asignarClaims, existeCorreoEnFirebase,} = require("../utils/helpers/firebaseHelper");
+const { validarExistencia} = require("../utils/validaciones/validarExistenciaModelo");
 
 async function crearUsuario(data) {
   const transaction = await sequelize.transaction();
@@ -32,11 +22,7 @@ async function crearUsuario(data) {
 
     await existeCorreoEnFirebase(correo);
     await existeUsuarioCorreoIdentificacion(correo, identificacion);
-    const rol_supabase = await buscarRegistroPorCondicion(
-      Rol,
-      { nombre: rol.toUpperCase() },
-      "Rol"
-    );
+    const rol_supabase = await buscarRegistroPorCondicion( Rol, { nombre: rol.toUpperCase() }, "Rol");
     const firebaseUser = await crearUsuarioFirebase({
       correo,
       contrasena,
@@ -45,7 +31,7 @@ async function crearUsuario(data) {
     const id_usuario = firebaseUser.uid;
 
     await asignarClaims(id_usuario, { rol, uuid_telefono });
-    await Usuario.create(
+    const nuevoUsuario= await Usuario.create(
       {
         id_usuario,
         identificacion,
@@ -71,12 +57,12 @@ async function crearUsuario(data) {
     );
 
     await transaction.commit();
-
     return {
+      success: true,
       mensaje: "Usuario registrado correctamente.",
-      idUsuario: id_usuario,
-      id_rol: rol_supabase.id_rol,
+      usuario: nuevoUsuario,
     };
+    
   } catch (error) {
     await transaction.rollback();
     throw new Error(`Error al crear usuario: ${error.message}`);
@@ -95,8 +81,8 @@ async function editarUsuario(data, id_usuario) {
       uuid_telefono,
     } = data;
 
-    // VALIDACIONES
-    const usuario = await encontrarRegistroEnModelo(
+  
+    const usuario = await validarExistencia(
       Usuario,
       id_usuario,
       "El Usuario"
@@ -135,13 +121,13 @@ async function editarUsuario(data, id_usuario) {
       estado,
     });
 
-    const rolUsuario = await encontrarRegistroEnModelo(
+    const rolUsuario = await validarExistencia(
       Rol,
       usuario.id_rol,
       "El rol"
     );
     const Modelo = obtenerModeloPorRol(rolUsuario.nombre);
-    const registro = await encontrarRegistroEnModelo(
+    const registro = await validarExistencia(
       Modelo,
       id_usuario,
       "el registro asociado"
@@ -154,8 +140,9 @@ async function editarUsuario(data, id_usuario) {
     }
 
     return {
-      mensaje: "Usuario actualizado correctamente.",
-      idUsuario: id_usuario,
+      success: true,
+      mensaje: "Usuario actualizad correctamente.",
+      usuario: usuario,
     };
   } catch (error) {
     throw new Error(`Error al editar usuario: ${error.message}`);
@@ -164,18 +151,18 @@ async function editarUsuario(data, id_usuario) {
 
 async function cambiarEstadoUsuario(id_usuario) {
   try {
-    const usuario = await encontrarRegistroEnModelo(
+    const usuario = await validarExistencia(
       Usuario,
       id_usuario,
       "El Usuario"
     );
-    const rol = await encontrarRegistroEnModelo(
+    const rol = await validarExistencia(
       Rol,
       usuario.id_rol,
       "El rol del usuario"
     );
     const Modelo = obtenerModeloPorRol(rol.nombre);
-    const registro = await encontrarRegistroEnModelo(
+    const registro = await validarExistencia(
       Modelo,
       id_usuario,
       "el registro asociado"
@@ -185,11 +172,13 @@ async function cambiarEstadoUsuario(id_usuario) {
     await registro.save();
 
     return {
-      mensaje: `Estado de ${rol.nombre.toLowerCase()} actualizado.`,
-      estado: registro.estado,
+      success: true,
+      mensaje: `Estado de ${usuario.nombres.toLowerCase()} actualizado.`,
+      Estado: registro.estado,
     };
+
   } catch (error) {
-    throw new Error(`No se pudo cambiar el estado: ${error.message}`);
+    throw new Error(`Error no se pudo cambiar el estado: ${error.message}`);
   }
 }
 
@@ -229,6 +218,7 @@ async function crearUsuarioMasivamente(datos) {
       }
     }
     return resultados;
+
   } catch (error) {
     throw new Error(`Error al procesar archivo Excel: ${error.message}`);
   }
@@ -243,7 +233,7 @@ async function obtenerUsuarios(filtros = {}) {
 
     // 1. ID usuario
     if (filtros.id_usuario) {
-      await encontrarRegistroEnModelo(
+      await validarExistencia(
         Usuario,
         filtros.id_usuario,
         "El Usuario"
@@ -291,14 +281,20 @@ async function obtenerUsuarios(filtros = {}) {
     // 6. Paginación
     const limit = filtros.limit ? parseInt(filtros.limit, 10) : 50;
     const offset = filtros.offset ? parseInt(filtros.offset, 10) : 0;
-
-    return await Usuario.findAll({
+    const resultado= await Usuario.findAll({
       where: whereConditionUsuario,
       include,
       order: [["apellidos", "ASC"]],
       limit,
       offset,
     });
+    
+    return {
+      success: true,
+      mensaje: "informacion consultada correctamente.",
+      resultado: resultado,
+    };
+
   } catch (error) {
     throw new Error(`Error al obtener usuarios: ${error.message}`);
   }

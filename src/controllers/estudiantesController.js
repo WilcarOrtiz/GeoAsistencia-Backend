@@ -1,4 +1,5 @@
 const estudianteService = require("../services/estudiantesService");
+const manejarError = require("../utils/handlers/manejadorError");
 
 async function obtenerEstudiantesNoAsignadosAGrupo(req, res) {
   try {
@@ -7,16 +8,9 @@ async function obtenerEstudiantesNoAsignadosAGrupo(req, res) {
       await estudianteService.obtenerEstudiantesNoAsignadosAGrupo(
         id_asignatura
       );
-    res.status(200).json({
-      success: true,
-      message: resultado.mensaje,
-      estudiantes: resultado.estudiantes,
-    });
+    return res.status(200).json(resultado);
   } catch (error) {
-    res.status(400).json({
-      success: false,
-      error: error.message,
-    });
+    return manejarError(res, error);
   }
 }
 
@@ -38,10 +32,7 @@ async function asignarGruposDeClase(req, res) {
     );
     res.status(200).json(resultado);
   } catch (error) {
-    res.status(400).json({
-      success: false,
-      error: error.message,
-    });
+    return manejarError(res, error);
   }
 }
 
@@ -53,7 +44,7 @@ async function consultarEstudiantesConSusGrupos(req, res) {
     );
     res.status(200).json(data);
   } catch (error) {
-    res.status(400).json({ success: false, error: error.message });
+    return manejarError(res, error);
   }
 }
 

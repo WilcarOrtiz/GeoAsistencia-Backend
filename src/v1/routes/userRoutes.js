@@ -32,15 +32,14 @@ const { verifyToken } = require("../../middlewares/verifyToken");
  *             schema:
  *               type: object
  *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
  *                 mensaje:
  *                   type: string
  *                   example: "Usuario registrado correctamente."
- *                 idUsuario:
- *                   type: string
- *                   example: "d7e5d8f2-5f7c-4d85-b9a1-1d1cdeae2e23"
- *                 rol:
- *                   type: string
- *                   example: "ESTUDIANTE"
+ *                 usuario:
+ *                   $ref: '#/components/schemas/Usuario'
  *       400:
  *         description: Error en la solicitud (por ejemplo, correo ya existe)
  *         content:
@@ -93,12 +92,12 @@ router.post(
  *                 success:
  *                   type: boolean
  *                   example: true
- *                 message:
+ *                 mensaje:
  *                   type: string
- *                   example: "Estado de docente actualizado correctamente."
- *                 estado:
+ *                   example: "Estado de Juan Pérez actualizado."
+ *                 Estado:
  *                   type: boolean
- *                   example: false
+ *                   example: true
  *       400:
  *         description: Error al cambiar estado (ID inválido u otro problema)
  *         content:
@@ -242,9 +241,8 @@ router.post(
  *                 mensaje:
  *                   type: string
  *                   example: "Usuario actualizado correctamente."
- *                 idUsuario:
- *                   type: string
- *                   example: "uid-firebase-actualizado"
+ *                 usuario:
+ *                   $ref: '#/components/schemas/Usuario'
  *       400:
  *         description: Error en la solicitud (correo repetido o ID inválido)
  *         content:
@@ -345,7 +343,10 @@ router.put(
  *                 success:
  *                   type: boolean
  *                   example: true
- *                 usuarios:
+ *                 mensaje:
+ *                   type: string
+ *                   example: "Información consultada correctamente."
+ *                 resultado:
  *                   type: array
  *                   items:
  *                     $ref: '#/components/schemas/Usuario'

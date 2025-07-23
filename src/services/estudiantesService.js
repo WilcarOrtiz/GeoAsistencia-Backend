@@ -11,21 +11,13 @@ const {
   formatearUsuariosConAsignaturasYGrupos,
 } = require("../utils/helpers/formatearUsuarioConAsignaturasYGrupos");
 
-const { encontrarRegistroEnModelo } = require("../utils/helpers/modeloHelper");
+const {
+  validarExistencia,
+} = require("../utils/validaciones/validarExistenciaModelo");
 
 async function obtenerEstudiantesNoAsignadosAGrupo(id_asignatura) {
-  //Consultar estudiantes que no pertenezcan a un grupo de la asignatura
   try {
-    if (
-      !(await encontrarRegistroEnModelo(
-        Asignatura,
-        id_asignatura,
-        "Asignatura"
-      ))
-    ) {
-      throw new Error("La asignatura no existe.");
-    }
-
+    await validarExistencia(Asignatura, id_asignatura, "Asignatura");
     const estudiantesSinGrupo = await Estudiante.findAll({
       include: [
         {
@@ -46,6 +38,7 @@ async function obtenerEstudiantesNoAsignadosAGrupo(id_asignatura) {
     });
 
     return {
+      success: true,
       mensaje: "Estudiantes no asignados a un grupo de la asignatura.",
       estudiantes: estudiantesSinGrupo,
     };
@@ -59,24 +52,15 @@ async function obtenerEstudiantesNoAsignadosAGrupo(id_asignatura) {
 async function asignarGruposDeClase(id_estudiante, grupos) {
   const transaction = await sequelize.transaction();
   try {
-    if (
-      !(await encontrarRegistroEnModelo(
-        Estudiante,
-        id_estudiante,
-        "El estudiante"
-      ))
-    ) {
-      throw new Error("El estudiante no existe.");
-    }
+    await validarExistencia(Estudiante, id_estudiante, "El estudiante");
 
-    // 2. Validar existencia de los grupos enviados
     const gruposEncontrados = await Grupo.findAll({
       where: { id_grupo: grupos },
       attributes: ["id_grupo", "id_asignatura"],
     });
 
     if (!gruposEncontrados.length) {
-      throw new Error("Ninguno de los grupos enviados existe.");
+      throw new Error("El grupo no está o no están en el sistema.");
     }
 
     // 3. Consultar desde la BD qué asignaturas ya tiene
