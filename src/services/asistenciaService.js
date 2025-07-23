@@ -4,6 +4,7 @@ const {
   Asistencia,
   Estudiante,
   Horario,
+  Usuario,
 } = require("../models");
 const { buscarRegistroPorCondicion } = require("../utils/helpers/modeloHelper");
 const {
@@ -18,7 +19,6 @@ const {
 } = require("../utils/validaciones/validarExistenciaModelo");
 
 async function esHoraClaseValida(id_grupo, fecha, hora) {
-  
   const grupo = await Grupo.findByPk(id_grupo, {
     attributes: ["estado_asistencia"],
     include: {
@@ -31,6 +31,8 @@ async function esHoraClaseValida(id_grupo, fecha, hora) {
   if (!grupo) {
     throw new Error("El grupo no está registrado");
   }
+
+  console.log("Grupo encontrado:", grupo.horarios);
 
   const fechaSolicitud = new Date(`${fecha}T${hora}`);
   const enHorario = grupo.horarios.some((h) => {
@@ -61,8 +63,19 @@ async function registrarAsistencia(id_grupo, id_estudiante) {
     const historial_asistencia = await buscarRegistroPorCondicion(
       Historial,
       { id_grupo, fecha },
-      "La lista de asistencia"
+      "El estudiante "
     );
+
+    const yaRegistrado = await buscarRegistroPorCondicion(Asistencia, {
+      id_estudiante,
+      id_historial_asistencia: historial_asistencia.id_historial_asistencia,
+    });
+
+    if (yaRegistrado) {
+      throw new Error(
+        "El estudiante ya está registrado en el historial de asistencia."
+      );
+    }
 
     await Asistencia.create({
       id_estudiante,
@@ -89,7 +102,7 @@ async function cambiarEstadoAsistencia(id_grupo, id_estudiante) {
       id_estudiante,
       "El estudiante"
     );
-    console.log("Estudiante encontrado:", estudiante.id_estudiante);
+
     await esHoraClaseValida(id_grupo, fecha, hora);
 
     const historial = await buscarRegistroPorCondicion(
@@ -123,19 +136,6 @@ async function cambiarEstadoAsistencia(id_grupo, id_estudiante) {
   }
 }
 
-async function generarAsistenciaManualmente(id_grupo, identificacion) {
-  try {
-    const { fecha, hora } = obtenerFechaYHoraActual();
-    const estudiante = await buscarRegistroPorCondicion(
-      Estudiante,
-      identificacion,
-      "El estudiante"
-    );
-    await esHoraClaseValida(id_grupo, fecha, hora);
-    return await cambiarEstadoAsistencia(id_grupo, estudiante.id_estudiante);
-  } catch (error) {}
-}
-
 async function validarUbicacion(latitud, longitud) {
   try {
     const dentro = await validarUbicacionUtils(latitud, longitud);
@@ -148,6 +148,26 @@ async function validarUbicacion(latitud, longitud) {
     };
   } catch (error) {
     throw new Error(`Error al validar la ubicación: ${error.message}`);
+  }
+}
+
+async function generarAsistenciaManualmente(id_grupo, identificacion) {
+  try {
+    const estudiante = await buscarRegistroPorCondicion(
+      Usuario,
+      { identificacion },
+      "El estudiante"
+    );
+
+    const resultado = await cambiarEstadoAsistencia(
+      id_grupo,
+      estudiante.id_usuario
+    );
+    return resultado;
+  } catch (error) {
+    throw new Error(
+      `Error al generar la asistencia manualmente: ${error.message}`
+    );
   }
 }
 

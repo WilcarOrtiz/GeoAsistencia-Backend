@@ -155,4 +155,57 @@ router.patch("/cambiarEstado", asistenciaController.cambiarEstadoAsistencia);
  */
 router.post("/validarUbicacion", asistenciaController.validarUbicacion);
 
+/**
+ * @openapi
+ * /asistencia/crearAsistenciaManualmente:
+ *   patch:
+ *     tags:
+ *       - Asistencia
+ *     summary: Crear asistencia manualmente
+ *     description: Crea un registro de asistencia manualmente para un estudiante en un grupo específico.
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - id_grupo
+ *               - identificacion
+ *             properties:
+ *               id_grupo:
+ *                 type: integer
+ *                 example: 22
+ *               identificacion:
+ *                 type: string
+ *                 example: "1066865144"
+ *     responses:
+ *       200:
+ *         description: Estado de asistencia actualizado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 mensaje:
+ *                   type: string
+ *                   example: "Registro de asistencia actualizado."
+ *                 asistente:
+ *                   type: string
+ *                   example: "Hr3BVwCLocRJ5amsEuj1mmUJCci2"
+ *       404:
+ *         description: No se encontró el registro de asistencia
+ *       500:
+ *         description: Error interno del servidor
+ */
+router.patch(
+  "/crearAsistenciaManualmente",
+  asistenciaController.crearAsistenciaManualmente
+);
+
 module.exports = router;

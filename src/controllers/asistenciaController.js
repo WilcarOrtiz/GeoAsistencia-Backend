@@ -1,5 +1,5 @@
 const asistenciaService = require("../services/asistenciaService");
-const manejarError  = require("../utils/handlers/manejadorError");
+const manejarError = require("../utils/handlers/manejadorError");
 
 async function registrarAsistencia(req, res) {
   try {
@@ -44,8 +44,22 @@ async function validarUbicacion(req, res) {
   }
 }
 
+async function crearAsistenciaManualmente(req, res) {
+  try {
+    const { id_grupo, identificacion } = req.body;
+    const resultado = await asistenciaService.generarAsistenciaManualmente(
+      id_grupo,
+      identificacion
+    );
+    res.status(200).json(resultado);
+  } catch (error) {
+    return manejarError(res, error);
+  }
+}
+
 module.exports = {
   registrarAsistencia,
   cambiarEstadoAsistencia,
   validarUbicacion,
+  crearAsistenciaManualmente,
 };
