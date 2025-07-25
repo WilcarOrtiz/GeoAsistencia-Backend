@@ -48,8 +48,21 @@ async function consultarEstudiantesConSusGrupos(req, res) {
   }
 }
 
+async function obtenerMiPerfil(req, res) {
+  try {
+    const id_estudiante = req.user.uid;
+    const data = await estudianteService.consultarEstudiantesConSusGrupos(
+      id_estudiante
+    );
+    res.status(200).json(data);
+  } catch (error) {
+    return manejarError(res, error);
+  }
+}
+
 module.exports = {
   obtenerEstudiantesNoAsignadosAGrupo,
   asignarGruposDeClase,
   consultarEstudiantesConSusGrupos,
+  obtenerMiPerfil,
 };

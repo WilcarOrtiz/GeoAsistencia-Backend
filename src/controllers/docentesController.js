@@ -45,8 +45,20 @@ async function consultarDocentesConSusGrupos(req, res) {
   }
 }
 
+async function obtenerMiPerfil(req, res) {
+  try {
+    const id_docente = req.user.uid;
+    const data = await docenteService.consultarDocentesConSusGrupos(id_docente);
+
+    res.status(200).json(data);
+  } catch (error) {
+    return manejarError(res, error);
+  }
+}
+
 module.exports = {
   docentesActivos,
   asignarGruposDeClase,
   consultarDocentesConSusGrupos,
+  obtenerMiPerfil,
 };

@@ -254,4 +254,96 @@ router.post(
 
 router.get("/grupos", estudianteController.consultarEstudiantesConSusGrupos);
 
+/**
+ * @openapi
+ * /estudiante/me:
+ *   get:
+ *     summary: Consultar mi informacion de perfil, junto con  grupos de clase.
+ *     description: Retorna toda la informacion asociada al estudiante que inicio sesion, incluyendo la lista de grupos a los que pertenece.
+ *     tags:
+ *       - Estudiante
+ *     responses:
+ *       200:
+ *         description: Detalle del estudiante con grupos y asignaturas.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 mensaje:
+ *                   type: string
+ *                   example: "Detalle del estudiante con grupos y asignaturas."
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                         example: "E001"
+ *                       nombreCompleto:
+ *                         type: string
+ *                         example: "Juan Pérez"
+ *                       correo:
+ *                         type: string
+ *                         example: "juan.perez@email.com"
+ *                       uuidTelefono:
+ *                         type: string
+ *                         example: "aabbccdd-1122-3344"
+ *                       estado:
+ *                         type: boolean
+ *                         example: true
+ *                       grupos:
+ *                         type: array
+ *                         items:
+ *                           type: object
+ *                           properties:
+ *                             id:
+ *                               type: integer
+ *                               example: 5
+ *                             nombre:
+ *                               type: string
+ *                               example: "Grupo A"
+ *                             asignatura:
+ *                               type: object
+ *                               properties:
+ *                                 id:
+ *                                   type: integer
+ *                                   example: 10
+ *                                 nombre:
+ *                                   type: string
+ *                                   example: "Programación I"
+ *       400:
+ *         description: Error en la consulta
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "Error al obtener docentes."
+ *       500:
+ *         description: Error interno del servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "Error inesperado en el servidor."
+ */
+
+router.get("/me", verifyToken, estudianteController.obtenerMiPerfil);
+
 module.exports = router;
