@@ -1,4 +1,3 @@
-// src/models/rol.js
 module.exports = (sequelize, DataTypes) => {
   const Rol = sequelize.define(
     "ROL",

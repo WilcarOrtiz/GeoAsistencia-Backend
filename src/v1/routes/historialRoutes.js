@@ -100,7 +100,8 @@ router.get("/:id_historial_asistencia", historialController.consultarEstudiantes
  *   get:
  *     summary: Consultar todas las listas de asistencia de un grupo
  *     description: Retorna el historial de asistencias asociado a un grupo específico.
- *     tags: [Historial]
+ *     tags: 
+ *       - Historial de Asistencia
  *     parameters:
  *       - in: path
  *         name: id_grupo
@@ -158,5 +159,83 @@ router.get("/:id_historial_asistencia", historialController.consultarEstudiantes
  *                   example: "Error interno del servidor: ..."
  */
 router.get("/grupo/:id_grupo", historialController.consultarHistorialPorIdGrupo);
+
+/**
+ * @openapi
+ * /historial/{id_historial_asistencia}/correo/{correo}:
+ *   post:
+ *     summary: Enviar correo con historial de asistencia
+ *     tags:
+ *       - Historial de Asistencia
+ *     parameters:
+ *       - in: path
+ *         name: id_historial_asistencia
+ *         required: true
+ *         description: ID del historial de asistencia
+ *         schema:
+ *           type: integer
+ *           example: 3
+ *       - in: path
+ *         name: correo
+ *         required: true
+ *         description: Correo del docente/administrador
+ *         schema:
+ *           type: string
+ *           example: 3
+ *     responses:
+ *       200:
+ *         description: Correo enviado correctamente.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 mensaje:
+ *                   type: string
+ *                   example:  Correo enviado correctamente.
+ *       400:
+ *         description: Parámetros inválidos o ausentes
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 mensaje:
+ *                   type: string
+ *                   example: "Faltan parámetros requeridos: id_historial_asistencia"
+ *       404:
+ *         description: No se encontró el historial de asistencia
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 mensaje:
+ *                   type: string
+ *                   example: "El historial de asistencia con el ID proporcionado no existe."
+ *       500:
+ *         description: Error interno del servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 mensaje:
+ *                   type: string
+ *                   example: "Ha ocurrido un error inesperado en el servidor."
+ */
+router.post("/:id_historial_asistencia/correo/:correo", historialController.enviarHistorialPorCorreo);
 
 module.exports = router;

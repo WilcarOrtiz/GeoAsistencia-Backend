@@ -1,5 +1,6 @@
 const validarParametros = require("../utils/validaciones/validarParametros");
 const historialService = require("../services/historialService");
+const manejarError = require("../utils/handlers/manejadorError");
 
 async function consultarEstudiantesPorIdHistorial(req, res) {
   try {
@@ -23,7 +24,19 @@ async function consultarHistorialPorIdGrupo(req, res) {
   }
 }
 
+async function enviarHistorialPorCorreo(req, res) {
+  try {
+    const { id_historial_asistencia, correo } = req.params;
+    if (!validarParametros(req, res, ["id_historial_asistencia", "correo"])) return;
+    const estudiantes = await historialService.enviarHistorialPorCorreo(id_historial_asistencia, correo);
+    return res.status(200).json(estudiantes);
+  } catch (error) {
+     return manejarError(res, error);
+  }
+}
+
 module.exports = { 
   consultarEstudiantesPorIdHistorial,
-  consultarHistorialPorIdGrupo
+  consultarHistorialPorIdGrupo,
+  enviarHistorialPorCorreo
 };

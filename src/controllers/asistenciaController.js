@@ -5,8 +5,6 @@ async function registrarAsistencia(req, res) {
   try {
     const { id_grupo } = req.body;
     const id_estudiante = req.user.uid;
-    console.log("ID del estudiante:", id_estudiante);
-    console.log("ID del grupo:", id_grupo);
     const resultado = await asistenciaService.registrarAsistencia(
       id_grupo,
       id_estudiante

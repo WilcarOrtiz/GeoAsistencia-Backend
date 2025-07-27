@@ -1,13 +1,25 @@
 function manejarError(res, error) {
-  if (error.message.includes('no está')) {
-    return res.status(404).json({ error: error.message });
-  } else {
-    if (error.message.includes('ya está')) {
-      return res.status(409).json({ error: error.message });
-    } else {
-      return res.status(500).json({ error: `Error interno del servidor: ${error}` });
-    }
+  console.error("Error capturado:", error); 
+
+  const mensaje = error.message || "Error desconocido";
+  
+  if (mensaje.includes("no está")) {
+    return res.status(404).json({ success: false, error: mensaje });
+  } 
+  
+  if (mensaje.includes("ya está")) {
+    return res.status(409).json({ success: false, error: mensaje });
+  } 
+  
+  if (mensaje.includes("parámetro") || mensaje.includes("inválido")) {
+    return res.status(400).json({ success: false, error: mensaje });
   }
+
+  return res.status(500).json({ 
+    success: false, 
+    error: "Error interno del servidor", 
+    detalle: mensaje 
+  });
 }
 
 module.exports = manejarError;
