@@ -1,4 +1,4 @@
-const { Historial, Asistencia, Estudiante, Usuario} = require("../models");
+const { Historial, Asistencia, Estudiante, Usuario, Grupo} = require("../models");
 const { validarExistencia } = require("../utils/validaciones/validarExistenciaModelo");
 
 async function consultarEstudiantesPorIdHistorial(id_historial_asistencia) {
@@ -35,4 +35,20 @@ async function consultarEstudiantesPorIdHistorial(id_historial_asistencia) {
   };
 }
 
-module.exports = {consultarEstudiantesPorIdHistorial}
+async function consultarHistorialPorIdGrupo(id_grupo) {
+  await validarExistencia(Grupo, id_grupo, "El grupo");
+  const listas = await Historial.findAll({
+    where: { id_grupo }
+    });
+
+  return {
+    success: true,
+    mensaje: "Listas de asistencia consultadas correctamente.",
+    listas: listas,
+  };
+}
+
+module.exports = {
+  consultarEstudiantesPorIdHistorial,
+  consultarHistorialPorIdGrupo
+}

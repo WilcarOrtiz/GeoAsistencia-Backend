@@ -92,7 +92,71 @@ const historialController = require("../../controllers/historialController");
  *                   type: string
  *                   example: "Ha ocurrido un error inesperado en el servidor."
  */
-
 router.get("/:id_historial_asistencia", historialController.consultarEstudiantesPorIdHistorial);
+
+/**
+ * @openapi
+ * /historial/grupo/{id_grupo}:
+ *   get:
+ *     summary: Consultar todas las listas de asistencia de un grupo
+ *     description: Retorna el historial de asistencias asociado a un grupo específico.
+ *     tags: [Historial]
+ *     parameters:
+ *       - in: path
+ *         name: id_grupo
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID único del grupo.
+ *     responses:
+ *       200:
+ *         description: Listas de asistencia consultadas correctamente.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 mensaje:
+ *                   type: string
+ *                   example: Listas de asistencia consultadas correctamente.
+ *                 listas:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Historial'
+ *       400:
+ *         description: Parámetros inválidos o faltantes.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: El id_grupo no puede ir vacío.
+ *       404:
+ *         description: Grupo no encontrado.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: El grupo no está registrado.
+ *       500:
+ *         description: Error interno del servidor.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Error interno del servidor: ..."
+ */
+router.get("/grupo/:id_grupo", historialController.consultarHistorialPorIdGrupo);
 
 module.exports = router;

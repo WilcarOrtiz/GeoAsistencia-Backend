@@ -12,4 +12,18 @@ async function consultarEstudiantesPorIdHistorial(req, res) {
   }
 }
 
-module.exports = { consultarEstudiantesPorIdHistorial };
+async function consultarHistorialPorIdGrupo(req, res) {
+  try {
+    const { id_grupo } = req.params;
+    if (!validarParametros(req, res, ["id_grupo"])) return;
+    const listas = await historialService.consultarHistorialPorIdGrupo(id_grupo);
+    return res.status(200).json(listas);
+  } catch (error) {
+     return manejarError(res, error);
+  }
+}
+
+module.exports = { 
+  consultarEstudiantesPorIdHistorial,
+  consultarHistorialPorIdGrupo
+};
