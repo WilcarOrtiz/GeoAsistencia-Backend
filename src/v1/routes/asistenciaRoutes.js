@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const asistenciaController = require("../../controllers/asistenciaController");
 const { verifyToken } = require("../../middlewares/verifyToken");
+const validarCampos = require("../../middlewares/validarCamposObligatorios");
 
 /**
  * @openapi
@@ -52,35 +53,33 @@ const { verifyToken } = require("../../middlewares/verifyToken");
 router.post(
   "/registrar",
   verifyToken,
+  validarCampos(["id_grupo"], "body"),
   asistenciaController.registrarAsistencia
 );
 
 /**
  * @openapi
- * /asistencia/cambiarEstado:
+ * /asistencia/estudiante/{id_estudiante}/grupo/{id_grupo}/estado:
  *   patch:
  *     tags:
  *       - Asistencia
  *     summary: Cambiar el estado de asistencia de un estudiante
  *     description: Alterna el estado (true ↔ false) de la asistencia de un estudiante para una fecha actual.
+ *     parameters:
+ *       - in: path
+ *         name: id_estudiante
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID del estudiante
+ *       - in: path
+ *         name: id_grupo
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID del grupo
  *     security:
  *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - id_grupo
- *               - id_estudiante
- *             properties:
- *               id_grupo:
- *                 type: integer
- *                 example: 22
- *               id_estudiante:
- *                 type: string
- *                 example: "Hr3BVwCLocRJ5amsEuj1mmUJCci2"
  *     responses:
  *       200:
  *         description: Estado de asistencia actualizado
@@ -103,7 +102,11 @@ router.post(
  *       500:
  *         description: Error interno del servidor
  */
-router.patch("/cambiarEstado", asistenciaController.cambiarEstadoAsistencia);
+router.patch(
+  "/estudiante/:id_estudiante/grupo/:id_grupo/estado",
+  validarCampos(["id_estudiante", "id_grupo"], "params"),
+  asistenciaController.cambiarEstadoAsistencia
+);
 
 /**
  * @openapi
@@ -153,11 +156,15 @@ router.patch("/cambiarEstado", asistenciaController.cambiarEstadoAsistencia);
  *       500:
  *         description: Error interno del servidor.
  */
-router.post("/validarUbicacion", asistenciaController.validarUbicacion);
+router.post(
+  "/validarUbicacion",
+  validarCampos(["latitud", "longitud"], "body"),
+  asistenciaController.validarUbicacion
+);
 
 /**
  * @openapi
- * /asistencia/crearAsistenciaManualmente:
+ * /asistencia/manual:
  *   patch:
  *     tags:
  *       - Asistencia
@@ -204,8 +211,99 @@ router.post("/validarUbicacion", asistenciaController.validarUbicacion);
  *         description: Error interno del servidor
  */
 router.patch(
-  "/crearAsistenciaManualmente",
+  "/manual",
+  validarCampos(["id_grupo", "identificacion"], "body"),
   asistenciaController.crearAsistenciaManualmente
+);
+
+/**
+ * @openapi
+ * /asistencia/estudiante/{id_estudiante}/grupo/{id_grupo}:
+ *   get:
+ *     tags:
+ *       - Asistencia
+ *     summary: Obtener las asistencias de un estudiante para un grupo específico.
+ *     description: Retorna el listado de asistencias de un estudiante en un grupo, incluyendo fecha, hora y estado.
+ *     parameters:
+ *       - in: path
+ *         name: id_estudiante
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID del estudiante
+ *       - in: path
+ *         name: id_grupo
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID del grupo
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Lista de asistencias
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 mensaje:
+ *                   type: string
+ *                   example: "Asistencias obtenidas correctamente."
+ *                 asistencias:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id_historial_asistencia:
+ *                         type: string
+ *                         example: "16"
+ *                       hora:
+ *                         type: string
+ *                         format: time
+ *                         example: "13:10:13"
+ *                       estado_asistencia:
+ *                         type: boolean
+ *                         example: true
+ *                       fecha:
+ *                         type: string
+ *                         format: date
+ *                         example: "2025-07-23"
+ *       404:
+ *         description: No se encontraron asistencias
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 mensaje:
+ *                   type: string
+ *                   example: "No se encontraron asistencias para el estudiante en el grupo especificado."
+ *       500:
+ *         description: Error interno del servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "Error interno del servidor"
+ */
+
+router.get(
+  "/estudiante/:id_estudiante/grupo/:id_grupo",
+  validarCampos(["id_estudiante", "id_grupo"], "params"),
+  asistenciaController.obtenerAsistenciaPorEstudianteYGrupo
 );
 
 module.exports = router;

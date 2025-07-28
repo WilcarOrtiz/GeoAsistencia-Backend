@@ -78,23 +78,7 @@ function validarArchivoExcel(req, res, next) {
   next();
 }
 
-function validarIdObligatorio(paramName) {
-  return (req, res, next) => {
-    const valor = req.params[paramName];
-
-    if (!valor) {
-      return res.status(400).json({
-        success: false,
-        error: `El parámetro ${paramName} es obligatorio.`,
-      });
-    }
-
-    next();
-  };
-}
-
 module.exports = {
   validarCamposUsuario,
   validarArchivoExcel,
-  validarIdObligatorio,
 };

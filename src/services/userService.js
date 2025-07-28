@@ -260,9 +260,7 @@ async function obtenerUsuarios(filtros = {}) {
     if (filtros.apellidos)
       whereConditionUsuario.apellidos = { [Op.like]: `%${filtros.apellidos}%` };
     if (filtros.identificacion)
-      whereConditionUsuario.identificacion = filtros.identificacion;
-    if (filtros.uuid_telefono)
-      whereConditionUsuario.uuid_telefono = filtros.uuid_telefono;
+      whereConditionUsuario.identificacion = { [Op.like]: `%${filtros.identificacion}%` };
 
     // 4. Estado (aplicable al modelo asociado)
     if (filtros.estado !== undefined && ModeloAsociado) {

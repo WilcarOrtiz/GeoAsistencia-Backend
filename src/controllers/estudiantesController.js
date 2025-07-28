@@ -18,14 +18,6 @@ async function asignarGruposDeClase(req, res) {
   try {
     const { id_estudiante } = req.params;
     const { grupos } = req.body;
-
-    if (!Array.isArray(grupos) || grupos.length === 0) {
-      return res.status(400).json({
-        success: false,
-        error: "Debe enviar un array de IDs de grupos.",
-      });
-    }
-
     const resultado = await estudianteService.asignarGruposDeClase(
       id_estudiante,
       grupos

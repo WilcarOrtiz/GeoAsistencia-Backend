@@ -1,25 +1,19 @@
 const express = require("express");
 const router = express.Router();
 const estudianteController = require("../../controllers/estudiantesController");
-const upload = require("../../middlewares/uploadMiddleware");
-
-const {
-  validarIdObligatorio,
-} = require("../../middlewares/Usuario/validarUsuario");
-
+const validarCampos = require("../../middlewares/validarCamposObligatorios");
 const { verifyToken } = require("../../middlewares/verifyToken");
 
 /**
  * @openapi
- * /estudiante/sinGrupo/{id_asignatura}:
+ * /estudiante/sin-grupo/{id_asignatura}:
  *   get:
  *     tags:
  *       - Estudiante
  *     summary: Obtiene todos los estudiantes que NO estan registrados en ningun grupo de esa asignatura
  *     parameters:
  *       - in: path
- *         name: id_asignatura
- *         required: true
+ *         name: id_asignatura 
  *         schema:
  *           type: string
  *         description: ID de la asignatura
@@ -53,14 +47,14 @@ const { verifyToken } = require("../../middlewares/verifyToken");
  *                   example: "Error al obtener usuarios"
  */
 router.get(
-  "/sinGrupo/:id_asignatura",
-  validarIdObligatorio("id_asignatura"),
+  "/sin-grupo/:id_asignatura",
+  validarCampos(["id_asignatura"], "params"),
   estudianteController.obtenerEstudiantesNoAsignadosAGrupo
 );
 
 /**
  * @openapi
- * /estudiante/{id_estudiante}/gruposDeClase:
+ * /estudiante/{id_estudiante}/grupos:
  *   post:
  *     summary: Asignar grupos de clase a un estudiante
  *     description: Asigna uno o varios grupos a un estudiante en la tabla intermedia ESTUDIANTE_GRUPO, evitando duplicados y conflictos por asignaturas.
@@ -149,8 +143,9 @@ router.get(
  */
 
 router.post(
-  "/:id_estudiante/gruposDeClase",
-  validarIdObligatorio("id_estudiante"),
+  "/:id_estudiante/grupos",
+  validarCampos(["id_estudiante"], "params"),
+  validarCampos(["grupos"], "body"),
   estudianteController.asignarGruposDeClase
 );
 

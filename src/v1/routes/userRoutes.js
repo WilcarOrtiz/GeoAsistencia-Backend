@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const usuarioController = require("../../controllers/userController");
 const upload = require("../../middlewares/uploadMiddleware");
+const validarCampos = require("../../middlewares/validarCamposObligatorios");
 
 const {
   validarCamposUsuario,
@@ -10,10 +11,11 @@ const {
 } = require("../../middlewares/Usuario/validarUsuario");
 
 const { verifyToken } = require("../../middlewares/verifyToken");
+const { authorizeRoles } = require("../../middlewares/authorizeRoles");
 
 /**
  * @openapi
- * /usuario/registrarUsuario:
+ * /usuario/registrar:
  *   post:
  *     tags:
  *       - Usuario
@@ -62,14 +64,16 @@ const { verifyToken } = require("../../middlewares/verifyToken");
  *                   example: "Error al crear usuario: descripción detallada"
  */
 router.post(
-  "/registrarUsuario",
+  "/registrar",
+  verifyToken,
+  authorizeRoles("DOCENTE"),
   validarCamposUsuario,
   usuarioController.registrarUsuario
 );
 
 /**
  * @openapi
- * /usuario/cambiarEstado/{id_usuario}:
+ * /usuario/{id_usuario}/estado:
  *   patch:
  *     tags:
  *       - Usuario
@@ -113,14 +117,14 @@ router.post(
  *                   example: "El usuario no existe."
  */
 router.patch(
-  "/cambiarEstado/:id_usuario",
-  validarIdObligatorio("id_usuario"),
+  "/:id_usuario/estado",
+  validarCampos(["id_usuario"], "params"),
   usuarioController.cambiarEstadoUsuario
 );
 
 /**
  * @openapi
- * /usuario/cargaMasivaUsuarios:
+ * /usuario/carga-masiva:
  *   post:
  *     tags:
  *       - Usuario
@@ -201,7 +205,7 @@ router.patch(
  *                   example: "Error al procesar archivo Excel: ..."
  */
 router.post(
-  "/cargaMasivaUsuarios",
+  "/carga-masiva",
   upload.single("archivo"),
   validarArchivoExcel,
   usuarioController.crearUsuarioMasivamente
@@ -209,7 +213,7 @@ router.post(
 
 /**
  * @openapi
- * /usuario/editarUsuario/{id_usuario}:
+ * /usuario/editar/{id_usuario}:
  *   put:
  *     tags:
  *       - Usuario
@@ -268,8 +272,8 @@ router.post(
  *                   example: "Error al editar usuario: descripción detallada"
  */
 router.put(
-  "/editarUsuario/:id_usuario",
-  validarIdObligatorio("id_usuario"),
+  "/editar/:id_usuario",
+  validarCampos(["id_usuario"], "params"),
   usuarioController.editarUsuario
 );
 
@@ -318,6 +322,12 @@ router.put(
  *         description: Filtrar por apellidos (búsqueda parcial).
  *         schema:
  *           type: string
+ *       - name: identificacion
+ *         in: query
+ *         required: false
+ *         description: Filtrar por identificación (búsqueda parcial).
+ *         schema:
+ *           type: string
  *       - name: limit
  *         in: query
  *         required: false
@@ -364,7 +374,6 @@ router.put(
  *                   type: string
  *                   example: "Error al obtener usuarios"
  */
-
 router.get("/listar", usuarioController.obtenerUsuarios);
 
 module.exports = router;

@@ -19,7 +19,7 @@ async function registrarAsistencia(req, res) {
 
 async function cambiarEstadoAsistencia(req, res) {
   try {
-    const { id_grupo, id_estudiante } = req.body;
+    const { id_grupo, id_estudiante } = req.params;
     const resultado = await asistenciaService.cambiarEstadoAsistencia(
       id_grupo,
       id_estudiante
@@ -57,9 +57,24 @@ async function crearAsistenciaManualmente(req, res) {
   }
 }
 
+async function obtenerAsistenciaPorEstudianteYGrupo(req, res) {
+  try {
+    const { id_estudiante, id_grupo } = req.params;
+    const resultado =
+      await asistenciaService.obtenerAsistenciaPorEstudianteYGrupo(
+        id_estudiante,
+        id_grupo
+      );
+    res.status(200).json(resultado);
+  } catch (error) {
+    return manejarError(res, error);
+  }
+}
+
 module.exports = {
   registrarAsistencia,
   cambiarEstadoAsistencia,
   validarUbicacion,
   crearAsistenciaManualmente,
+  obtenerAsistenciaPorEstudianteYGrupo,
 };

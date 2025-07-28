@@ -1,16 +1,13 @@
 const express = require("express");
 const router = express.Router();
 const docenteController = require("../../controllers/docentesController");
-const upload = require("../../middlewares/uploadMiddleware");
 const { verifyToken } = require("../../middlewares/verifyToken");
 const { authorizeRoles } = require("../../middlewares/authorizeRoles");
-const {
-  validarIdObligatorio,
-} = require("../../middlewares/Usuario/validarUsuario");
+const validarCampos = require("../../middlewares/validarCamposObligatorios");
 
 /**
  * @openapi
- * /docente/{id_docente}/gruposDeClase:
+ * /docente/{id_docente}/grupos:
  *   post:
  *     summary: Asignar grupos de clase a un docente
  *     description: Asigna uno o varios grupos a un docente.
@@ -99,8 +96,9 @@ const {
  */
 
 router.post(
-  "/:id_docente/gruposDeClase",
-  validarIdObligatorio("id_docente"),
+  "/:id_docente/grupos",
+  validarCampos(["id_docente"], "params"),
+  validarCampos(["grupos"], "body"),
   docenteController.asignarGruposDeClase
 );
 

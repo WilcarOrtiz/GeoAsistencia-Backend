@@ -5,6 +5,7 @@ const {
   Estudiante,
   Horario,
   Usuario,
+  Asignatura,
 } = require("../models");
 const { buscarRegistroPorCondicion } = require("../utils/helpers/modeloHelper");
 const {
@@ -163,11 +164,58 @@ async function generarAsistenciaManualmente(id_grupo, identificacion) {
       id_grupo,
       estudiante.id_usuario
     );
-    return resultado;
+
+    return {
+      success: true,
+      mensaje: "Asistencia generada correctamente ",
+      Asistencias: resultado,
+    };
   } catch (error) {
     throw new Error(
       `Error al generar la asistencia manualmente: ${error.message}`
     );
+  }
+}
+
+async function obtenerAsistenciaPorEstudianteYGrupo(id_estudiante, id_grupo) {
+  try {
+    await validarExistencia(Estudiante, id_estudiante, "El estudiante");
+    await validarExistencia(Grupo, id_grupo, "El grupo");
+
+    const asistencias = await Asistencia.findAll({
+      where: {
+        id_estudiante,
+      },
+      include: [
+        {
+          model: Historial,
+          where: { id_grupo },
+          attributes: ["fecha"],
+        },
+      ],
+      raw: true,
+      nest: true,
+    });
+
+    if (!asistencias) {
+      throw new Error(
+        "En los registro de asistencia no está tu asistencia registrada."
+      );
+    }
+    const resultadoPlano = asistencias.map((a) => ({
+      id_historial_asistencia: a.id_historial_asistencia,
+      hora: a.hora,
+      estado_asistencia: a.estado_asistencia,
+      fecha: a.HISTORIAL_ASISTENCIum.fecha,
+    }));
+
+    return {
+      success: true,
+      mensaje: "lista de asistencias. ",
+      Asistencias: resultadoPlano,
+    };
+  } catch (error) {
+    throw new Error(`Error al obtener la asistencia: ${error.message}`);
   }
 }
 
@@ -176,4 +224,5 @@ module.exports = {
   cambiarEstadoAsistencia,
   validarUbicacion,
   generarAsistenciaManualmente,
+  obtenerAsistenciaPorEstudianteYGrupo,
 };

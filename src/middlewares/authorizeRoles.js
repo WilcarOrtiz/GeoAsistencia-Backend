@@ -1,5 +1,3 @@
-// ❌ NO uses async aquí
-// const authorizeRoles = async (...roles) => {
 const authorizeRoles = (...roles) => {
   return (req, res, next) => {
     const userRole = req.user.rol;
