@@ -1,5 +1,7 @@
 const express = require("express");
 const router = express.Router();
+const { verifyToken } = require("../../middlewares/verifyToken");
+const { authorizeRoles } = require("../../middlewares/authorizeRoles");
 const historialController = require("../../controllers/historialController");
 
 /**
@@ -92,7 +94,7 @@ const historialController = require("../../controllers/historialController");
  *                   type: string
  *                   example: "Ha ocurrido un error inesperado en el servidor."
  */
-router.get("/:id_historial_asistencia", historialController.consultarEstudiantesPorIdHistorial);
+router.get("/:id_historial_asistencia", verifyToken, authorizeRoles("DOCENTE", "ADMINISTRADOR") , historialController.consultarEstudiantesPorIdHistorial);
 
 /**
  * @openapi
@@ -158,7 +160,7 @@ router.get("/:id_historial_asistencia", historialController.consultarEstudiantes
  *                   type: string
  *                   example: "Error interno del servidor: ..."
  */
-router.get("/grupo/:id_grupo", historialController.consultarHistorialPorIdGrupo);
+router.get("/grupo/:id_grupo", verifyToken, authorizeRoles("DOCENTE", "ADMINISTRADOR"), historialController.consultarHistorialPorIdGrupo);
 
 /**
  * @openapi
@@ -236,6 +238,6 @@ router.get("/grupo/:id_grupo", historialController.consultarHistorialPorIdGrupo)
  *                   type: string
  *                   example: "Ha ocurrido un error inesperado en el servidor."
  */
-router.post("/:id_historial_asistencia/correo/:correo", historialController.enviarHistorialPorCorreo);
+router.post("/:id_historial_asistencia/correo/:correo", verifyToken, authorizeRoles("DOCENTE", "ADMINISTRADOR"), historialController.enviarHistorialPorCorreo);
 
 module.exports = router;

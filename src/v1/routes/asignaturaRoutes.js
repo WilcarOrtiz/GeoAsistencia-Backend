@@ -52,7 +52,7 @@ const upload = require("../../middlewares/uploadMiddleware");
  *                   type: string
  *                   example: "Error interno del servidor: ..."
  */
-router.post("/registrar", asignaturaController.crearAsignatura);
+router.post("/registrar", verifyToken, authorizeRoles("ADMINISTRADOR"), asignaturaController.crearAsignatura);
 
 /**
  * @openapi
@@ -115,7 +115,7 @@ router.post("/registrar", asignaturaController.crearAsignatura);
  *                   type: string
  *                   example: "Error interno del servidor: ..."
  */
-router.put("/editar/:id_asignatura", asignaturaController.editarAsignatura);
+router.put("/editar/:id_asignatura", verifyToken, authorizeRoles("ADMINISTRADOR"), asignaturaController.editarAsignatura);
 
 /**
  * @openapi
@@ -174,7 +174,7 @@ router.put("/editar/:id_asignatura", asignaturaController.editarAsignatura);
  *                   type: string
  *                   example: "Error interno del servidor: ..."
  */
-router.patch("/habilitar/:id_asignatura", asignaturaController.habilitarAsignatura);
+router.patch("/habilitar/:id_asignatura", verifyToken, authorizeRoles("ADMINISTRADOR"), asignaturaController.habilitarAsignatura);
 
 /**
  * @openapi
@@ -211,7 +211,7 @@ router.patch("/habilitar/:id_asignatura", asignaturaController.habilitarAsignatu
  *                   type: string
  *                   example: "Error interno del servidor: ..."
  */
-router.get("/", asignaturaController.consultarAsignaturas);
+router.get("/", verifyToken, authorizeRoles("ADMINISTRADOR"), asignaturaController.consultarAsignaturas);
 
 /**
  * @openapi
@@ -248,7 +248,7 @@ router.get("/", asignaturaController.consultarAsignaturas);
  *                   type: string
  *                   example: "Error interno del servidor: ..."
  */
-router.get("/activas", asignaturaController.consultarAsignaturasActivas);
+router.get("/activas", verifyToken, authorizeRoles("ADMINISTRADOR"), asignaturaController.consultarAsignaturasActivas);
 
 /**
  * @openapi
@@ -292,7 +292,7 @@ router.get("/activas", asignaturaController.consultarAsignaturasActivas);
  *                   type: string
  *                   example: "Error interno del servidor: ..."
  */
-router.get("/docente/:id_docente", asignaturaController.consultarAsignaturasPorDocente);
+router.get("/docente/:id_docente", verifyToken, authorizeRoles("ADMINISTRADOR", "DOCENTE"), asignaturaController.consultarAsignaturasPorDocente);
 
 /**
  * @openapi
@@ -336,7 +336,7 @@ router.get("/docente/:id_docente", asignaturaController.consultarAsignaturasPorD
  *                   type: string
  *                   example: "Error interno del servidor: ..."
  */
-router.get("/:id_asignatura", asignaturaController.consultarAsignaturaPorId);
+router.get("/:id_asignatura", verifyToken, authorizeRoles("ADMINISTRADOR", "DOCENTE"), asignaturaController.consultarAsignaturaPorId);
 
 /**
  * @openapi
@@ -416,6 +416,6 @@ router.get("/:id_asignatura", asignaturaController.consultarAsignaturaPorId);
  *                   type: string
  *                   example: "Error al procesar archivo Excel: ..."
  */
-router.post("/cargaMasivaAsignaturas", upload.single("archivo"), asignaturaController.crearAsignaturaMasivamente);
+router.post("/cargaMasivaAsignaturas", verifyToken, authorizeRoles("ADMINISTRADOR"), upload.single("archivo"), asignaturaController.crearAsignaturaMasivamente);
 
 module.exports = router;

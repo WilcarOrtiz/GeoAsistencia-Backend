@@ -114,7 +114,7 @@ const router = express.Router();
  *                   type: string
  *                   example: "Error interno del servidor: ..."
  */
-router.post("/registrar", grupoController.crearGrupo);
+router.post("/registrar", verifyToken, authorizeRoles("ADMINISTRADOR"), grupoController.crearGrupo);
 
 /**
  * @openapi
@@ -206,7 +206,7 @@ router.post("/registrar", grupoController.crearGrupo);
  *                   type: string
  *                   example: "Error interno del servidor: ..."
  */
-router.put("/editar/:id_grupo", grupoController.editarGrupo);
+router.put("/editar/:id_grupo", verifyToken, authorizeRoles("ADMINISTRADOR"), grupoController.editarGrupo);
 
 /**
  * @openapi
@@ -256,7 +256,7 @@ router.put("/editar/:id_grupo", grupoController.editarGrupo);
  *                   type: string
  *                   example: Error interno del servidor ...
  */
-router.delete("/eliminar/:id_grupo", grupoController.eliminarGrupo);
+router.delete("/eliminar/:id_grupo", verifyToken, authorizeRoles("ADMINISTRADOR"), grupoController.eliminarGrupo);
 
 /**
  * @openapi
@@ -312,7 +312,7 @@ router.delete("/eliminar/:id_grupo", grupoController.eliminarGrupo);
  *                   type: string
  *                   example: Error interno del servidor ...
  */
-router.delete("/:id_grupo/estudiante/:id_estudiante", grupoController.eliminarEstudianteDeGrupo);
+router.delete("/:id_grupo/estudiante/:id_estudiante", verifyToken, authorizeRoles("ADMINISTRADOR"), grupoController.eliminarEstudianteDeGrupo);
 
 /**
  * @openapi
@@ -374,7 +374,7 @@ router.delete("/:id_grupo/estudiante/:id_estudiante", grupoController.eliminarEs
  *                   type: string
  *                   example: Error interno del servidor ...
  */
-router.put("/:id_grupo/trasladar/:id_nuevo_grupo/estudiante/:id_estudiante", grupoController.trasladarEstudianteDeGrupo);
+router.put("/:id_grupo/trasladar/:id_nuevo_grupo/estudiante/:id_estudiante", verifyToken, authorizeRoles("ADMINISTRADOR"), grupoController.trasladarEstudianteDeGrupo);
 
 /**
  * @openapi
@@ -462,7 +462,7 @@ router.put("/:id_grupo/trasladar/:id_nuevo_grupo/estudiante/:id_estudiante", gru
  *                   type: string
  *                   example: "Error interno del servidor: ..."
  */
-router.get("/:id_grupo", grupoController.consultarGrupoPorId);
+router.get("/:id_grupo", verifyToken, authorizeRoles("ADMINISTRADOR", "DOCENTE"), grupoController.consultarGrupoPorId);
 
 /**
  * @openapi
@@ -518,7 +518,7 @@ router.get("/:id_grupo", grupoController.consultarGrupoPorId);
  *                   type: string
  *                   example: "Error interno del servidor: ..."
  */
-router.get("/asignatura/:id_asignatura/docente/:id_docente", grupoController.consultarGruposPorDocente);
+router.get("/asignatura/:id_asignatura/docente/:id_docente", verifyToken, authorizeRoles("ADMINISTRADOR", "DOCENTE"), grupoController.consultarGruposPorDocente);
 
 /**
  * @openapi
@@ -569,7 +569,7 @@ router.get("/asignatura/:id_asignatura/docente/:id_docente", grupoController.con
  *                   type: string
  *                   example: "Error interno del servidor: ..."
  */
-router.get("/asignatura/:id_asignatura", grupoController.consultarGruposPorAsignatura);
+router.get("/asignatura/:id_asignatura",verifyToken, authorizeRoles("ADMINISTRADOR"), grupoController.consultarGruposPorAsignatura);
 
 /**
  * @openapi
@@ -625,7 +625,7 @@ router.get("/asignatura/:id_asignatura", grupoController.consultarGruposPorAsign
  *                   type: string
  *                   example: "Error interno del servidor: ..."
  */
-router.get("/asignatura/:id_asignatura/estudiante/:id_estudiante", grupoController.consultarGruposPorEstudiante);
+router.get("/asignatura/:id_asignatura/estudiante/:id_estudiante", verifyToken, authorizeRoles("ADMINISTRADOR", "ESTUDIANTE"),grupoController.consultarGruposPorEstudiante);
 
 /**
  * @openapi
@@ -676,7 +676,7 @@ router.get("/asignatura/:id_asignatura/estudiante/:id_estudiante", grupoControll
  *                   type: string
  *                   example: "Error interno del servidor: ..."
  */
-router.get("/:id_grupo/estudiantes", grupoController.consultarEstudiantesPorId);
+router.get("/:id_grupo/estudiantes", verifyToken, authorizeRoles("ADMINISTRADOR"), grupoController.consultarEstudiantesPorId);
 
 /**
  * @openapi
@@ -748,7 +748,7 @@ router.get("/:id_grupo/estudiantes", grupoController.consultarEstudiantesPorId);
  *                   type: string
  *                   example: "Error interno del servidor: ..."
  */
-router.patch("/:id_grupo/asistencia", grupoController.iniciarLlamadoLista);
+router.patch("/:id_grupo/asistencia", verifyToken, authorizeRoles("DOCENTE"), grupoController.iniciarLlamadoLista);
 
 /**
  * @openapi
@@ -798,7 +798,7 @@ router.patch("/:id_grupo/asistencia", grupoController.iniciarLlamadoLista);
  *                   type: string
  *                   example: "Error interno del servidor: ..."
  */
-router.patch("/:id_grupo/asistencia/detener", grupoController.detenerLlamadoLista);
+router.patch("/:id_grupo/asistencia/detener", verifyToken, authorizeRoles("DOCENTE"), grupoController.detenerLlamadoLista);
 
 /**
  * @openapi
@@ -848,6 +848,6 @@ router.patch("/:id_grupo/asistencia/detener", grupoController.detenerLlamadoList
  *                   type: string
  *                   example: "Error interno del servidor: ..."
  */
-router.patch("/:id_grupo/asistencia/cancelar", grupoController.cancelarLlamadoLista);
+router.patch("/:id_grupo/asistencia/cancelar", verifyToken, authorizeRoles("DOCENTE"), grupoController.cancelarLlamadoLista);
 
 module.exports = router;
