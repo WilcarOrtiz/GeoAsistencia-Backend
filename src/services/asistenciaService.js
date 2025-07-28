@@ -1,5 +1,5 @@
 const {
-  Grupo,
+Grupo,
   Historial,
   Asistencia,
   Estudiante,
@@ -32,8 +32,6 @@ async function esHoraClaseValida(id_grupo, fecha, hora) {
   if (!grupo) {
     throw new Error("El grupo no está registrado");
   }
-
-  console.log("Grupo encontrado:", grupo.horarios);
 
   const fechaSolicitud = new Date(`${fecha}T${hora}`);
   const enHorario = grupo.horarios.some((h) => {

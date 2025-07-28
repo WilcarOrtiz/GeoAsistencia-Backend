@@ -144,7 +144,6 @@ async function asignarGruposDeClase(id_estudiante, grupos) {
 async function consultarEstudiantesConSusGrupos(id_estudiante) {
   try {
     const whereCondition = id_estudiante ? { id_estudiante } : {};
-    console.log("Consultando estudiantes con grupos:", whereCondition);
     const estudiantes = await Estudiante.findAll({
       where: whereCondition,
       include: [

@@ -1,4 +1,3 @@
-// utils/modeloPorRol.js
 const { Usuario, Docente, Estudiante, Rol } = require("../../models");
 const { Op } = require("sequelize");
 
