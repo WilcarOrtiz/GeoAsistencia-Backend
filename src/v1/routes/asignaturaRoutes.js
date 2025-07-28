@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const asignaturaController = require("../../controllers/asignaturaController");
+const { verifyToken } = require("../../middlewares/verifyToken");
+const { authorizeRoles } = require("../../middlewares/authorizeRoles");
 const upload = require("../../middlewares/uploadMiddleware");
 
 /**
