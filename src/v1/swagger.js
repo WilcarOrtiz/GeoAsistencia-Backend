@@ -38,6 +38,7 @@ const options = {
     "./src/schemas/historialSchema.js",
     "./src/v1/routes/asistenciaRoutes.js",
     "./src/v1/routes/historialRoutes.js",
+    "./src/v1/routes/metricasRoutes.js",
   ],
 };
 

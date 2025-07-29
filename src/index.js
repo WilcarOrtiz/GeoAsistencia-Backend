@@ -13,6 +13,7 @@ const grupoRoutes = require("./v1/routes/grupoRoutes");
 const userRoutes = require("./v1/routes/userRoutes");
 const asistenciaRoutes = require("./v1/routes/asistenciaRoutes");
 const historialRoutes = require("./v1/routes/historialRoutes");
+const metricaRoutes = require("./v1/routes/metricasRoutes");
 
 async function main() {
   try {
@@ -22,6 +23,7 @@ async function main() {
     app.use(bodyParser.json());
 
     app.use("/usuario", userRoutes);
+    app.use("/metricas", metricaRoutes);
     app.use("/asistencia", asistenciaRoutes);
     app.use("/estudiante", estudianteRoutes);
     app.use("/docente", docenteRoutes);
