@@ -1,7 +1,16 @@
 module.exports = (sequelize, DataTypes) => {
   const EstudianteGrupo = sequelize.define(
-    "EstudianteGrupo",
+    "ESTUDIANTE_GRUPO",
     {
+      id_grupo_periodo: {
+        type: DataTypes.BIGINT,
+        allowNull: false,
+        primaryKey: true,
+        references: {
+          model: "GRUPO_PERIODO",
+          key: "id_grupo_periodo",
+        },
+      },
       id_estudiante: {
         type: DataTypes.STRING,
         allowNull: false,
@@ -10,24 +19,12 @@ module.exports = (sequelize, DataTypes) => {
           model: "ESTUDIANTE",
           key: "id_estudiante",
         },
-        onUpdate: "CASCADE",
-        onDelete: "CASCADE",
-      },
-      id_grupo: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        primaryKey: true,
-        references: {
-          model: "GRUPO",
-          key: "id_grupo",
-        },
-        onUpdate: "CASCADE",
-        onDelete: "CASCADE",
       },
     },
     {
       tableName: "ESTUDIANTE_GRUPO",
       timestamps: false,
+      freezeTableName: true,
     }
   );
 

@@ -1,35 +1,40 @@
 module.exports = (sequelize, DataTypes) => {
-  const Historial = sequelize.define(
-    "HISTORIAL_ASISTENCIA",
+  const GrupoPeriodo = sequelize.define(
+    "GRUPO_PERIODO",
     {
-      id_historial_asistencia: {
+      id_grupo_periodo: {
         type: DataTypes.BIGINT,
         primaryKey: true,
         autoIncrement: true,
         unique: true,
       },
-      fecha: {
-        type: DataTypes.DATE,
+      periodo: {
+        type: DataTypes.TEXT,
         allowNull: false,
       },
-      tema: {
+      id_docente: {
         type: DataTypes.STRING,
-        allowNull: true,
+        allowNull: false,
+        references: {
+          model: "DOCENTE",
+          key: "id_docente",
+        },
       },
-      id_grupo_periodo: {
+      id_grupo: {
         type: DataTypes.BIGINT,
         allowNull: false,
         references: {
-          model: "GRUPO_PERIODO",
-          key: "id_grupo_periodo",
+          model: "GRUPO",
+          key: "id_grupo",
         },
       },
     },
     {
-      tableName: "HISTORIAL_ASISTENCIA",
+      tableName: "GRUPO_PERIODO",
       timestamps: false,
       freezeTableName: true,
     }
   );
-  return Historial;
+
+  return GrupoPeriodo;
 };

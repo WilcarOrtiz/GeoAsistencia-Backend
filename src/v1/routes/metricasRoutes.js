@@ -15,7 +15,23 @@ const metricaController = require("../../controllers/metricaController");
  *       - Si el usuario es **administrador**, se incluyen métricas generales como el total de asignaturas, estudiantes, grupos y docentes en todo el sistema.
  *
  *       - Si el usuario es **docente**, se retorna únicamente el total de asignaturas, grupos y estudiantes asociados a sus clases.
- *
+ *     parameters:
+ *       - in: query
+ *         name: periodo
+ *         required: false
+ *         schema:
+ *           type: string
+ *           example: "2025-1"
+ *         description: Periodo académico a consultar (obligatorio para el administrador)
+ *       - in: query
+ *         name: mes
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 12
+ *           example: 3
+ *         description: Número del mes dentro del periodo académico (opcional)
  *     tags:
  *       - Métricas
  *     security:
@@ -99,6 +115,23 @@ router.get(
  *       - Métricas
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: periodo
+ *         required: false
+ *         schema:
+ *           type: string
+ *           example: "2025-1"
+ *         description: Periodo académico a consultar (obligatorio para el administrador)
+ *       - in: query
+ *         name: mes
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 12
+ *           example: 3
+ *         description: Número del mes dentro del periodo académico (opcional)
  *     responses:
  *       200:
  *         description: Métricas generales obtenidas correctamente.
@@ -191,6 +224,23 @@ router.get(
  *       - Si es **administrador**, realiza el cálculo para todas las asignaturas del sistema.
  *
  *       - Si es **docente** , realiza el cálculo solo para las asignaturas que imparte el docente, tomando como base los grupo de clase.
+ *     parameters:
+ *       - in: query
+ *         name: periodo
+ *         required: false
+ *         schema:
+ *           type: string
+ *           example: "2025-1"
+ *         description: Periodo académico a consultar (obligatorio para el administrador)
+ *       - in: query
+ *         name: mes
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 12
+ *           example: 3
+ *         description: Número del mes dentro del periodo académico (opcional)
  *     tags:
  *       - Métricas
  *     security:
@@ -265,12 +315,29 @@ router.get(
  *   get:
  *     summary: calcula el porcentaje de asistencias e inasistencias por grupo de clase.
  *     parameters:
+ *       - in: query
+ *         name: periodo
+ *         required: false
+ *         schema:
+ *           type: string
+ *           example: "2025-1"
+ *         description: Periodo académico a consultar (obligatorio para el administrador)
+ *       - in: query
+ *         name: mes
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 12
+ *           example: 3
+ *         description: Número del mes dentro del periodo académico (opcional)
  *       - in: path
  *         name: p_id_asignatura
  *         required: true
  *         schema:
  *           type: string
  *         description: ID interno de la asignatura.
+ *
  *     description: >
  *       calcula el porcentaje de asistencias e inasistencias por grupo de clase, permitiendo evaluar la participación de los estudiantes.
  *
@@ -356,6 +423,23 @@ router.get(
  *       - Si es **administrador**, realiza el cálculo para todos los grupos de clase del sistema.
  *
  *       - Si es **docente** ,evalúa únicamente los grupos a su cargo.
+ *     parameters:
+ *       - in: query
+ *         name: periodo
+ *         required: false
+ *         schema:
+ *           type: string
+ *           example: "2025-1"
+ *         description: Periodo académico a consultar (obligatorio para el administrador)
+ *       - in: query
+ *         name: mes
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 12
+ *           example: 3
+ *         description: Número del mes dentro del periodo académico (opcional)
  *     tags:
  *       - Métricas
  *     security:
@@ -452,7 +536,23 @@ router.get(
  *       - Si el usuario es **administrador**, se calcula de forma global..
  *
  *       - Si el usuario es **docente**, se limita a los grupos bajo su responsabilidad.
- *
+ *     parameters:
+ *       - in: query
+ *         name: periodo
+ *         required: false
+ *         schema:
+ *           type: string
+ *           example: "2025-1"
+ *         description: Periodo académico a consultar (obligatorio para el administrador)
+ *       - in: query
+ *         name: mes
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 12
+ *           example: 3
+ *         description: Número del mes dentro del periodo académico (opcional)
  *     tags:
  *       - Métricas
  *     security:
@@ -521,8 +621,25 @@ router.get(
  *
  *       - Si es **administrador** realiza el cálculo para todos los estudiantes, en todos los grupos de clase
  *
- *       - Si es **docente** evalúa únicamente los estudiantes pertenecientes a sus grupos de clase.
+ *       - Si es **docente** evalúa únicamente los estudiantes pertenecientes a sus grupos de clase y para el periodo actual (unicamente)
  *
+ *     parameters:
+ *       - in: query
+ *         name: periodo
+ *         required: false
+ *         schema:
+ *           type: string
+ *           example: "2025-1"
+ *         description: Periodo académico a consultar
+ *       - in: query
+ *         name: mes
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 12
+ *           example: 3
+ *         description: Número del mes dentro del periodo académico (opcional)
  *     tags:
  *       - Métricas
  *     security:
