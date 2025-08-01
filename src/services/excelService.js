@@ -1,6 +1,5 @@
 const ExcelJS = require("exceljs");
 
-//DEBE CAMBIAR - AGREGAR EL PERIODO ACADEMICO Y EL DOCENTE
 async function generarExcelAsistencia(datos) {
   const workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet("Reporte");
@@ -17,13 +16,15 @@ async function generarExcelAsistencia(datos) {
     alignment: { horizontal: "center", vertical: "middle" },
   };
 
-  worksheet.addRow(["Asignatura","Código","Grupo","Código","Fecha","Tema de clase"]);
+  worksheet.addRow(["Asignatura","Código","Grupo","Código","Fecha","Semestre","Docente","Tema de clase"]);
   const rowHistorial = worksheet.addRow([
     datos.historial.nombre_asignatura,
     datos.historial.codigo_asignatura,
     datos.historial.nombre_grupo,
     datos.historial.codigo_grupo,
     datos.historial.fecha,
+    datos.historial.semestre,
+    datos.historial.docente,
     datos.historial.tema,
   ]);
 
