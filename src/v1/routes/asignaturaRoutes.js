@@ -254,17 +254,10 @@ router.get("/activas", verifyToken, authorizeRoles("ADMINISTRADOR"), asignaturaC
 
 /**
  * @openapi
- * /asignatura/docente/{id_docente}:
+ * /asignatura/docente:
  *   get:
- *     summary: Consultar todas las asignaturas de un docente
+ *     summary: Consultar todas las asignaturas de un docente en el semestre actual
  *     tags: [Asignaturas]
- *     parameters:
- *       - in: path
- *         name: id_docente
- *         schema:
- *           type: string
- *         required: true
- *         description: ID del docente
  *     responses:
  *       200:
  *         description: Asignaturas consultadas correctamente
@@ -294,7 +287,7 @@ router.get("/activas", verifyToken, authorizeRoles("ADMINISTRADOR"), asignaturaC
  *                   type: string
  *                   example: "Error interno del servidor: ..."
  */
-router.get("/docente/:id_docente", verifyToken, authorizeRoles("ADMINISTRADOR", "DOCENTE"), asignaturaController.consultarAsignaturasPorDocente);
+router.get("/docente", verifyToken, authorizeRoles("ADMINISTRADOR", "DOCENTE"), asignaturaController.consultarAsignaturasPorDocente);
 
 /**
  * @openapi

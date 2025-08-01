@@ -1,5 +1,6 @@
 const ExcelJS = require("exceljs");
 
+//DEBE CAMBIAR - AGREGAR EL PERIODO ACADEMICO Y EL DOCENTE
 async function generarExcelAsistencia(datos) {
   const workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet("Reporte");

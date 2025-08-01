@@ -4,6 +4,7 @@ const asociarHorariosAGrupo = require("../utils/helpers/asociarHorarios");
 const validarGrupo = require("../utils/validaciones/validarGrupo");
 const { Sequelize, Op } = require("sequelize");
 
+//DEBE CAMBIAR, AHORA SI TRAE ID_DOCENTE DEBE VALIDARSE Y AGREGAR LA RELACIÓN EN LA TABLA INTERSECTA Y DEBE PEDIR EL SEMESTRE TAMBIEN
 async function crearGrupo(datos) {
   const { id_asignatura, id_docente, codigo, horarios } = datos;
 
@@ -29,6 +30,7 @@ async function crearGrupo(datos) {
   };
 }
 
+//DEBE CAMBIAR, SI ES EL MISMO SEMESTRE EDITA EL GRUPO Y PONE EL NUEVO DOCENTE, SI ES DIFERENTE, AGREGA EL NUEVO REGISTRO EN LA INTERSECTA
 async function editarGrupo(id_grupo, datos) {
   const { id_asignatura, id_docente, codigo, horarios } = datos;
 
@@ -81,6 +83,7 @@ async function eliminarEstudianteDeGrupo(id_grupo, id_estudiante) {
   };
 }
 
+//Si es el mismo semestre lo cambia normal y edita el registro que existia, pero si es otro semestre agrega el nuevo registro
 async function trasladarEstudianteDeGrupo(id_grupo, id_estudiante, id_nuevo_grupo) {
   const grupoActual = await validarExistencia(Grupo, id_grupo, "El grupo");
   const nuevoGrupo = await validarExistencia(Grupo, id_nuevo_grupo, "El grupo para trasladar");
@@ -139,6 +142,7 @@ async function consultarGrupoPorId(id_grupo) {
   };
 }
 
+//Validar semestre
 async function consultarGruposPorDocente(id_asignatura, id_docente) {
   await validarExistencia(Asignatura, id_asignatura, "La asignatura");
   await validarExistencia(Docente, id_docente, "El docente");
@@ -174,6 +178,7 @@ async function consultarGruposPorDocente(id_asignatura, id_docente) {
   };
 }
 
+//Validar semestre
 async function consultarGruposPorAsignatura(id_asignatura) {
   await validarExistencia(Asignatura, id_asignatura, "La asignatura");
 
@@ -202,6 +207,7 @@ async function consultarGruposPorAsignatura(id_asignatura) {
   };
 }
 
+//Validar semestre
 async function consultarGruposPorEstudiante(id_asignatura, id_estudiante) {
   await validarExistencia(Asignatura, id_asignatura, "La asignatura");
   await validarExistencia(Estudiante, id_estudiante, "El estudiante");
@@ -251,6 +257,7 @@ async function consultarGruposPorEstudiante(id_asignatura, id_estudiante) {
   };
 }
 
+//Validar semestre
 async function consultarEstudiantesPorId(id_grupo) {
   await validarExistencia(Grupo,id_grupo, "El grupo");
 

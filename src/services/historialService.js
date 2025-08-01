@@ -36,6 +36,7 @@ async function consultarEstudiantesPorIdHistorial(id_historial_asistencia) {
   };
 }
 
+//Validar semestre
 async function consultarHistorialPorIdGrupo(id_grupo) {
   await validarExistencia(Grupo, id_grupo, "El grupo");
   const listas = await Historial.findAll({

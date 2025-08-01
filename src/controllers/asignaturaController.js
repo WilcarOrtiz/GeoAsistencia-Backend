@@ -69,8 +69,7 @@ async function consultarAsignaturasActivas(req, res) {
 
 async function consultarAsignaturasPorDocente(req, res) {
     try {
-        const { id_docente } = req.params;
-        if (!validarParametros(req, res, ["id_docente"])) return;
+        const id_docente = req.user.uid;
         const asignaturasConsultadas = await asignaturaService.consultarAsignaturasPorDocente(id_docente);
         return res.status(200).json(asignaturasConsultadas);
     } catch (error) {
