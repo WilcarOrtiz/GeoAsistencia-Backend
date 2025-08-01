@@ -57,9 +57,9 @@ async function eliminarEstudianteDeGrupo(req, res) {
 
 async function trasladarEstudianteDeGrupo(req, res) {
   try {
-    const { id_grupo, id_estudiante, id_nuevo_grupo  } = req.params;
-    if (!validarParametros(req, res, ["id_grupo","id_estudiante","id_nuevo_grupo"])) return;
-    const estudianteTrasladoGrupo = await grupoService.trasladarEstudianteDeGrupo(id_grupo, id_estudiante, id_nuevo_grupo);
+    const { id_grupo, id_estudiante, id_nuevo_grupo, periodo  } = req.params;
+    if (!validarParametros(req, res, ["id_grupo","id_estudiante","id_nuevo_grupo","periodo"])) return;
+    const estudianteTrasladoGrupo = await grupoService.trasladarEstudianteDeGrupo(id_grupo, id_estudiante, id_nuevo_grupo, periodo);
     return res.status(200).json(estudianteTrasladoGrupo);
   } catch (error) {
     return manejarError(res, error);
@@ -90,9 +90,9 @@ async function consultarGruposPorDocente(req, res) {
 
 async function consultarGruposPorAsignatura(req, res) {
   try {
-    const { id_asignatura } = req.params;
-    if (!validarParametros(req, res, ["id_asignatura"])) return;
-    const gruposConsultados = await grupoService.consultarGruposPorAsignatura(id_asignatura);
+    const { id_asignatura, periodo } = req.params;
+    if (!validarParametros(req, res, ["id_asignatura", "periodo"])) return;
+    const gruposConsultados = await grupoService.consultarGruposPorAsignatura(id_asignatura, periodo);
     return res.status(200).json(gruposConsultados);
   } catch (error) {
      return manejarError(res, error);
@@ -112,9 +112,9 @@ async function consultarGruposPorEstudiante(req, res) {
 
 async function consultarEstudiantesPorId(req, res) {
   try {
-    const { id_grupo } = req.params;
-    if (!validarParametros(req, res, ["id_grupo"])) return;
-    const estudiantesConsultados = await grupoService.consultarEstudiantesPorId(id_grupo);
+    const { id_grupo, semestre } = req.params;
+    if (!validarParametros(req, res, ["id_grupo", "semestre"])) return;
+    const estudiantesConsultados = await grupoService.consultarEstudiantesPorId(id_grupo, semestre);
     return res.status(200).json(estudiantesConsultados);
   } catch (error) {
     return manejarError(res, error);

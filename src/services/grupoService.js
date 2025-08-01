@@ -7,6 +7,7 @@ const { obtenerSemestreActual } = require("../utils/helpers/obtenerSemestreActua
 
 async function crearGrupo(datos) {
   const { id_asignatura, id_docente, codigo, horarios } = datos;
+  const semestreActual = obtenerSemestreActual();
 
   const asignatura = await validarExistencia(Asignatura, id_asignatura, "La asignatura");
   await validarEstadoActivo(asignatura, "La asignatura");
@@ -19,9 +20,9 @@ async function crearGrupo(datos) {
   if (id_docente) {
     const docente = await validarExistencia(Docente, id_docente, "El docente");
     await validarEstadoActivo(docente, "El docente");
-    const semestreActual = obtenerSemestreActual();
-    await GrupoPeriodo.create({periodo: semestreActual, id_docente: id_docente, id_grupo: grupoCreado.id_grupo})
   }
+
+  await GrupoPeriodo.create({periodo: semestreActual, id_docente: id_docente || null, id_grupo: grupoCreado.id_grupo});
 
   await asociarHorariosAGrupo(grupoCreado.id_grupo, horarios);
 
@@ -32,7 +33,6 @@ async function crearGrupo(datos) {
   };
 }
 
-//DEBE CAMBIAR, SI ES EL MISMO SEMESTRE EDITA EL GRUPO Y PONE EL NUEVO DOCENTE, SI ES DIFERENTE, AGREGA EL NUEVO REGISTRO EN LA INTERSECTA
 async function editarGrupo(id_grupo, datos) {
   const { id_asignatura, id_docente, codigo, horarios } = datos;
 
@@ -44,6 +44,13 @@ async function editarGrupo(id_grupo, datos) {
   if (id_docente) {
       const docente = await validarExistencia(Docente, id_docente, "El docente");
       await validarEstadoActivo(docente, "El docente");
+      const semestreActual = obtenerSemestreActual();
+      const asignado = await GrupoPeriodo.findOne({where: {periodo: semestreActual, id_grupo: grupo.id_grupo}});
+      if (asignado) {
+        asignado.update({id_docente: id_docente});
+      } else {
+        GrupoPeriodo.create({id_docente: id_docente, id_grupo: id_grupo, periodo: semestreActual});
+      }
   }
 
   if (codigo !== grupo.codigo) {
@@ -78,48 +85,69 @@ async function eliminarEstudianteDeGrupo(id_grupo, id_estudiante) {
   await validarExistencia(Grupo, id_grupo, "El grupo");
   await validarExistencia(Estudiante, id_estudiante, "El estudiante");
 
-  await EstudianteGrupo.destroy({where: {id_grupo, id_estudiante}});
+  const semestreActual = obtenerSemestreActual();
+
+  const grupo = await GrupoPeriodo.findOne({
+    where: { id_grupo, semestreActual }
+  });
+
+  if (!grupo) {
+    throw new Error(`No existe relación para el grupo en el periodo ${periodo}`);
+  }
+
+  await EstudianteGrupo.destroy({where: {id_grupo_periodo: grupo.id_grupo_periodo, id_estudiante }});
   return {
       success: true,
       mensaje: "Estudiante eliminado del grupo correctamente.",
   };
 }
 
-//Si es el mismo semestre lo cambia normal y edita el registro que existia, pero si es otro semestre agrega el nuevo registro
-async function trasladarEstudianteDeGrupo(id_grupo, id_estudiante, id_nuevo_grupo) {
+async function trasladarEstudianteDeGrupo(id_grupo, id_estudiante, id_nuevo_grupo, semestre = null) {
   const grupoActual = await validarExistencia(Grupo, id_grupo, "El grupo");
   const nuevoGrupo = await validarExistencia(Grupo, id_nuevo_grupo, "El grupo para trasladar");
   await validarExistencia(Estudiante, id_estudiante, "El estudiante");
 
   if (grupoActual.id_asignatura !== nuevoGrupo.id_asignatura) {
-      throw new Error("El nuevo grupo debe pertenecer a la misma asignatura.");
+    throw new Error("El nuevo grupo debe pertenecer a la misma asignatura.");
   }
 
-  const gruposAsignatura = await Grupo.findAll({
-      where: {
-          id_asignatura: grupoActual.id_asignatura,
-          id_grupo: { [Op.ne]: id_grupo },
-      },
-      include: {
-          model: Estudiante,
-          where: { id_estudiante },
-          through: { attributes: [] }
-      }
+  const semestre = semestre || obtenerSemestreActual();
+
+  const grupoPeriodoActual = await GrupoPeriodo.findOne({ where: { id_grupo: id_grupo, periodo: semestre } });
+  const grupoPeriodoNuevo = await GrupoPeriodo.findOne({ where: { id_grupo: id_nuevo_grupo, periodo: semestre } });
+
+  if (!grupoPeriodoActual) throw new Error(`No existe relación del grupo actual para el semestre ${semestre}`);
+  if (!grupoPeriodoNuevo) throw new Error(`No existe relación del nuevo grupo para el semestre ${semestre}`);
+
+  const existeOtroGrupo = await EstudianteGrupo.findOne({
+    where: {
+      id_estudiante,
+      id_grupo_periodo: { [Op.ne]: grupoPeriodoActual.id_grupo_periodo }
+    },
+    include: {
+      model: GrupoPeriodo,
+      where: { periodo: semestre },
+      include: { model: Grupo, where: { id_asignatura: grupoActual.id_asignatura } }
+    }
   });
 
-  if (gruposAsignatura.length > 0) {
-      throw new Error("El estudiante ya pertenece a otro grupo de esta asignatura.");
+  if (existeOtroGrupo) {
+    throw new Error("El estudiante ya pertenece a otro grupo de esta asignatura en el mismo periodo.");
   }
 
-  await EstudianteGrupo.destroy({ where: { id_grupo, id_estudiante } });
+  if (periodo === null) {
+      await EstudianteGrupo.destroy({ where: { id_estudiante, id_grupo_periodo: grupoPeriodoActual.id_grupo_periodo }
+    });
+  }
+
   await EstudianteGrupo.create({
-      id_grupo: id_nuevo_grupo,
-      id_estudiante: id_estudiante
+    id_grupo_periodo: grupoPeriodoNuevo.id_grupo_periodo,
+    id_estudiante
   });
 
   return {
-      success: true,
-      mensaje: "Estudiante trasladado al nuevo grupo correctamente.",
+    success: true,
+    mensaje: `Estudiante trasladado al nuevo grupo correctamente para el semestre ${semestre}.`,
   };
 }
 
@@ -144,92 +172,125 @@ async function consultarGrupoPorId(id_grupo) {
   };
 }
 
-//Validar semestre
 async function consultarGruposPorDocente(id_asignatura, id_docente) {
   await validarExistencia(Asignatura, id_asignatura, "La asignatura");
   await validarExistencia(Docente, id_docente, "El docente");
-  
+
+  const semestre = obtenerSemestreActual();
+
   const grupos = await Grupo.findAll({
-  where: { id_asignatura, id_docente },
-  attributes: {
+    where: { id_asignatura },
+    attributes: {
       include: [
-          [Sequelize.fn("COUNT", Sequelize.col("ESTUDIANTEs.id_estudiante")), "cantidad_estudiantes"],
-      ],
-      },
-      include: [
+        [
+          Sequelize.literal(`(
+            SELECT COUNT(*) 
+            FROM "ESTUDIANTE_GRUPO" eg
+            INNER JOIN "GRUPO_PERIODO" gp ON gp.id_grupo_periodo = eg.id_grupo_periodo
+            WHERE gp.id_grupo = "GRUPO".id_grupo
+              AND gp.id_docente = '${id_docente}'
+              AND gp.periodo = '${semestre}'
+          )`),
+          "cantidad_estudiantes"
+        ]
+      ]
+    },
+    include: [
       {
-          model: Estudiante,
-          attributes: [],
-          through: { attributes: [] },
+        model: GrupoPeriodo,
+        where: { id_docente, periodo: semestre },
+        attributes: []
       },
       {
-          model: Horario,
-          as: "horarios",
-          attributes: ["id_dia", "hora_inicio", "hora_fin"],
-          through: { attributes: [] },
-      },
-      ],
-      group: ["GRUPO.id_grupo", "horarios.id_horario"],
-      subQuery: false,
+        model: Horario,
+        as: "horarios",
+        attributes: ["id_dia", "hora_inicio", "hora_fin"],
+        through: { attributes: [] }
+      }
+    ],
+    group: ["GRUPO.id_grupo", "horarios.id_horario"],
+    subQuery: false
   });
 
   return {
-      success: true,
-      mensaje: "Grupos consultados correctamente.",
-      grupos: grupos,
+    success: true,
+    mensaje: `Grupos del docente para el semestre ${semestre} consultados correctamente.`,
+    grupos: grupos
   };
 }
 
-//Validar semestre
-async function consultarGruposPorAsignatura(id_asignatura) {
+async function consultarGruposPorAsignatura(id_asignatura, semestre = null) {
   await validarExistencia(Asignatura, id_asignatura, "La asignatura");
 
+  const whereGrupoPeriodo = semestre ? { semestre } : {}; 
+
   const grupos = await Grupo.findAll({
-      where: { id_asignatura },
-      attributes: {
+    where: { id_asignatura },
+    attributes: {
       include: [
-          [Sequelize.fn("COUNT", Sequelize.col("ESTUDIANTEs.id_estudiante")), "cantidad_estudiantes"],
-      ],
-      },
-      include: [
+        [
+          Sequelize.literal(`(
+            SELECT COUNT(*)
+            FROM "ESTUDIANTE_GRUPO" eg
+            INNER JOIN "GRUPO_PERIODO" gp ON gp.id_grupo_periodo = eg.id_grupo_periodo
+            WHERE gp.id_grupo = "GRUPO".id_grupo
+            ${periodo ? `AND gp.periodo = '${semestre}'` : ""}
+          )`),
+          "cantidad_estudiantes"
+        ]
+      ]
+    },
+    include: [
       {
-          model: Estudiante,
-          attributes: [],
-          through: { attributes: [] },
-      },
-      ],
-      group: ["GRUPO.id_grupo"],
-      subQuery: false,
+        model: GrupoPeriodo,
+        where: whereGrupoPeriodo,
+        attributes: ["periodo"], 
+        required: false 
+      }
+    ],
+    group: ["GRUPO.id_grupo", "GRUPO_PERIODO.id_grupo_periodo"],
+    subQuery: false
   });
 
   return {
-      success: true,
-      mensaje: "Grupos consultados correctamente.",
-      grupos: grupos,
+    success: true,
+    mensaje: semestre
+      ? `Grupos consultados correctamente para el semestre ${semestre}.` 
+      : "Grupos consultados correctamente (todos los semestres).",
+    grupos: grupos
   };
 }
 
-//Validar semestre
 async function consultarGruposPorEstudiante(id_asignatura, id_estudiante) {
   await validarExistencia(Asignatura, id_asignatura, "La asignatura");
   await validarExistencia(Estudiante, id_estudiante, "El estudiante");
+
+  const semestreActual = obtenerSemestreActual();
+  const whereGrupoPeriodo =  { semestreActual };
 
   const grupos = await Grupo.findAll({
     where: { id_asignatura },
     include: [
       {
-        model: Estudiante,
-        where: { id_estudiante },
-        attributes: [], 
-        through: { attributes: [] },
-      },
-      {
-        model: Docente,
-        attributes: ["id_docente"],
-        include: {
-          model: Usuario,
-          attributes: ["nombres", "apellidos"],
-        },
+        model: GrupoPeriodo,
+        where: whereGrupoPeriodo,
+        required: true,
+        include: [
+          {
+            model: Estudiante,
+            where: { id_estudiante },
+            attributes: [],
+            through: { attributes: [] },
+          },
+          {
+            model: Docente,
+            attributes: ["id_docente"],
+            include: {
+              model: Usuario,
+              attributes: ["nombres", "apellidos"],
+            }
+          }
+        ]
       },
       {
         model: Horario,
@@ -245,46 +306,74 @@ async function consultarGruposPorEstudiante(id_asignatura, id_estudiante) {
     nombre: grupo.nombre,
     codigo: grupo.codigo,
     docente: {
-      id_docente: grupo.DOCENTE?.id_docente,
-      nombre: grupo.DOCENTE?.USUARIO?.nombres,
-      apellido: grupo.DOCENTE?.USUARIO?.apellidos,
+      id_docente: grupo.GRUPO_PERIODOs?.[0]?.DOCENTE?.id_docente || null,
+      nombre: grupo.GRUPO_PERIODOs?.[0]?.DOCENTE?.USUARIO?.nombres || null,
+      apellido: grupo.GRUPO_PERIODOs?.[0]?.DOCENTE?.USUARIO?.apellidos || null,
     },
+    periodo: grupo.GRUPO_PERIODOs?.[0]?.periodo || null,
     horarios: grupo.horarios,
   }));
 
   return {
     success: true,
-    mensaje: "Grupos consultados correctamente.",
+    mensaje: periodo 
+      ? `Grupos del estudiante para el semestre ${periodo} consultados correctamente.` 
+      : "Grupos del estudiante consultados correctamente (todos los semestres).",
     grupos: resultado,
   };
 }
 
-//Validar semestre
-async function consultarEstudiantesPorId(id_grupo) {
-  await validarExistencia(Grupo,id_grupo, "El grupo");
+async function consultarEstudiantesPorId(id_grupo, semestre = null) {
+  await validarExistencia(Grupo, id_grupo, "El grupo");
 
-  const estudiantes = await Grupo.findByPk(id_grupo,{
-      include: [
+  const whereGrupoPeriodo = semestre ? { id_grupo, semestre } : { id_grupo };
+
+  const grupo = await Grupo.findOne({
+    where: { id_grupo },
+    include: [
+      {
+        model: GrupoPeriodo,
+        where: whereGrupoPeriodo,
+        required: true,
+        include: [
+          {
+            model: Estudiante,
+            attributes: ["estado"],
+            through: { attributes: [] },
+            include: [
               {
-                  model: Estudiante,
-                  attributes: ["estado"], 
-                  through: { attributes: [] },
-                  include: [
-                      {
-                      model: Usuario,
-                      attributes: ["identificacion", "nombres", "apellidos", "correo"], 
-                      }
-                  ]
-              },
-          ],
-          group: ["GRUPO.id_grupo", "ESTUDIANTEs.id_estudiante", "ESTUDIANTEs->USUARIO.id_usuario"],
-          subQuery: false,
-      });
+                model: Usuario,
+                attributes: ["identificacion", "nombres", "apellidos", "correo"],
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  });
+
+  if (!grupo) {
+    throw new Error("No hay estudiantes para este grupo o semestre especificado.");
+  }
+
+  const estudiantes = grupo.GRUPO_PERIODOs.flatMap(gp =>
+    gp.ESTUDIANTEs.map(est => ({
+      id_estudiante: est.id_estudiante,
+      estado: est.estado,
+      identificacion: est.USUARIO?.identificacion,
+      nombres: est.USUARIO?.nombres,
+      apellidos: est.USUARIO?.apellidos,
+      correo: est.USUARIO?.correo,
+      periodo: gp.periodo
+    }))
+  );
 
   return {
-      success: true,
-      mensaje: "Estudiantes consultados correctamente.",
-      estudiantes: estudiantes,
+    success: true,
+    mensaje: periodo
+      ? `Estudiantes del grupo ${id_grupo} en el semestre ${periodo} consultados correctamente.`
+      : `Estudiantes del grupo ${id_grupo} consultados correctamente.`,
+    estudiantes: estudiantes
   };
 }
 
