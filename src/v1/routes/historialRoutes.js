@@ -98,7 +98,7 @@ router.get("/:id_historial_asistencia", verifyToken, authorizeRoles("DOCENTE", "
 
 /**
  * @openapi
- * /historial/grupo/{id_grupo}:
+ * /historial/grupo/{id_grupo}/semestre/{semestre}:
  *   get:
  *     summary: Consultar todas las listas de asistencia de un grupo
  *     description: Retorna el historial de asistencias asociado a un grupo específico.
@@ -111,6 +111,12 @@ router.get("/:id_historial_asistencia", verifyToken, authorizeRoles("DOCENTE", "
  *         schema:
  *           type: integer
  *         description: ID único del grupo.
+ *       - in: path
+ *         name: semestre
+ *         required: false
+ *         schema:
+ *           type: integer
+ *         description: Semestre para consultar los historiales.
  *     responses:
  *       200:
  *         description: Listas de asistencia consultadas correctamente.
@@ -160,11 +166,11 @@ router.get("/:id_historial_asistencia", verifyToken, authorizeRoles("DOCENTE", "
  *                   type: string
  *                   example: "Error interno del servidor: ..."
  */
-router.get("/grupo/:id_grupo", verifyToken, authorizeRoles("DOCENTE", "ADMINISTRADOR"), historialController.consultarHistorialPorIdGrupo);
+router.get("/grupo/:id_grupo/semestre/:semestre", verifyToken, authorizeRoles("DOCENTE", "ADMINISTRADOR"), historialController.consultarHistorialPorIdGrupo);
 
 /**
  * @openapi
- * /historial/{id_historial_asistencia}/correo/{correo}:
+ * /historial/{id_historial_asistencia}:
  *   post:
  *     summary: Enviar correo con historial de asistencia
  *     tags:
@@ -176,13 +182,6 @@ router.get("/grupo/:id_grupo", verifyToken, authorizeRoles("DOCENTE", "ADMINISTR
  *         description: ID del historial de asistencia
  *         schema:
  *           type: integer
- *           example: 3
- *       - in: path
- *         name: correo
- *         required: true
- *         description: Correo del docente/administrador
- *         schema:
- *           type: string
  *           example: 3
  *     responses:
  *       200:
@@ -238,6 +237,6 @@ router.get("/grupo/:id_grupo", verifyToken, authorizeRoles("DOCENTE", "ADMINISTR
  *                   type: string
  *                   example: "Ha ocurrido un error inesperado en el servidor."
  */
-router.post("/:id_historial_asistencia/correo/:correo", verifyToken, authorizeRoles("DOCENTE", "ADMINISTRADOR"), historialController.enviarHistorialPorCorreo);
+router.post("/:id_historial_asistencia", verifyToken, authorizeRoles("DOCENTE", "ADMINISTRADOR"), historialController.enviarHistorialPorCorreo);
 
 module.exports = router;

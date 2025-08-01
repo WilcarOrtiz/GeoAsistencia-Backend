@@ -1,6 +1,7 @@
 const { validarExistencia } = require("../utils/validaciones/validarExistenciaModelo");
-const { Asignatura, Docente, Grupo} = require("../models");
+const { Asignatura, Docente, Grupo, GrupoPeriodo} = require("../models");
 const { Sequelize } = require("sequelize");
+const { obtenerSemestreActual } = require("../utils/helpers/obtenerSemestreActual");
 
 async function crearAsignatura(datos) {
   const { codigo } = datos;
@@ -85,37 +86,48 @@ async function consultarAsignaturasActivas() {
 
 async function consultarAsignaturasPorDocente(id_docente) {
   await validarExistencia(Docente, id_docente, "El docente");
+
+  const semestreActual = obtenerSemestreActual();
+
   const asignaturas = await Asignatura.findAll({
     include: [
       {
         model: Grupo,
-        where: { id_docente },
         attributes: [],
-        required: true
+        required: true,
+        include: [
+          {
+            model: GrupoPeriodo,
+            where: { id_docente: id_docente, periodo: semestreActual },
+            attributes: [],
+            required: true
+          }
+        ]
       }
     ],
-    attributes: {
-      include: [
-        [
-          Sequelize.literal(`(
-            SELECT COUNT(*) 
-            FROM "GRUPO" AS "grupos" 
-            WHERE 
-              "grupos"."id_asignatura" = "ASIGNATURA"."id_asignatura"
-              AND "grupos"."id_docente" = '${id_docente}'
-          )`),
-          "cantidad_grupos"
-        ]
+    attributes: [
+      "id_asignatura",
+      "nombre",
+      "codigo",
+      [
+        Sequelize.literal(`(
+          SELECT COUNT(*)
+          FROM "GRUPO_PERIODO" gp
+          JOIN "GRUPO" g ON gp.id_grupo = g.id_grupo
+          WHERE gp.id_docente = '${id_docente}'
+            AND gp.periodo = '${semestreActual}'
+            AND g.id_asignatura = "ASIGNATURA".id_asignatura
+        )`),
+        "cantidad_grupos"
       ]
-    },
+    ],
     group: ["ASIGNATURA.id_asignatura"]
   });
 
-
   return {
     success: true,
-    mensaje: "Asignaturas consultadas correctamente.",
-    asignaturas: asignaturas,
+    mensaje: `Asignaturas del docente para el semestre ${semestreActual} consultadas correctamente.`,
+    asignaturas
   };
 }
 

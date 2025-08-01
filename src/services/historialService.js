@@ -1,6 +1,7 @@
-const { Historial, Asistencia, Estudiante, Usuario, Grupo, Asignatura } = require("../models");
+const { Historial, Asistencia, Estudiante, Usuario, Grupo, Asignatura, GrupoPeriodo } = require("../models");
 const { validarExistencia } = require("../utils/validaciones/validarExistenciaModelo");
 const { enviarCorreoConExcel } = require("./correoService");
+const { obtenerSemestreActual } = require("../utils/helpers/obtenerSemestreActual");
 
 async function consultarEstudiantesPorIdHistorial(id_historial_asistencia) {
   await validarExistencia(Historial, id_historial_asistencia, "El historial de asistencia");
@@ -36,21 +37,45 @@ async function consultarEstudiantesPorIdHistorial(id_historial_asistencia) {
   };
 }
 
-async function consultarHistorialPorIdGrupo(id_grupo) {
+async function consultarHistorialPorIdGrupo(id_grupo, semestre = null, rol = "DOCENTE") {
   await validarExistencia(Grupo, id_grupo, "El grupo");
+
+  const semestreConsultar = {};
+
+  if (rol === "DOCENTE") {
+    semestreConsultar.periodo = obtenerSemestreActual(); 
+  } else if (rol === "ADMINISTRADOR" && semestre) {
+    semestreConsultar.periodo = semestre;
+  }
+
   const listas = await Historial.findAll({
-    where: { id_grupo }
-    });
+    include: [
+      {
+        model: GrupoPeriodo,
+        where: semestreConsultar,
+        required: true,
+        include: [
+          {
+            model: Grupo,
+            where: { id_grupo },
+            required: true,
+          }
+        ]
+      }
+    ]
+  });
 
   return {
     success: true,
-    mensaje: "Listas de asistencia consultadas correctamente.",
+    mensaje: `Listas de asistencia consultadas correctamente.`,
     listas: listas,
   };
 }
 
 async function enviarHistorialPorCorreo(id_historial_asistencia, correo) {
   const historial = await validarExistencia(Historial, id_historial_asistencia, "El historial de asistencia");
+  const semestre = await validarExistencia(GrupoPeriodo, historial.id_grupo_periodo, "El historial en el semestre");
+  const docente = await validarExistencia(Usuario, semestre.id_docente, "El docente");
   const grupo = await validarExistencia(Grupo, historial.id_grupo, "El grupo");
   const asignatura = await validarExistencia(Asignatura, grupo.id_asignatura, "La asignatura");
 
@@ -67,6 +92,8 @@ async function enviarHistorialPorCorreo(id_historial_asistencia, correo) {
 
   const historialData = {
     fecha: historial.fecha,
+    semestre: semestre.periodo,
+    docente: docente.nombres + " " + docente.apellidos,
     tema: historial.tema,
     nombre_grupo: grupo.nombre,
     codigo_grupo: grupo.codigo,

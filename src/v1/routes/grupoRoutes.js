@@ -318,7 +318,7 @@ router.delete("/:id_grupo/estudiante/:id_estudiante", verifyToken, authorizeRole
 
 /**
  * @openapi
- * /grupo/{id_grupo}/trasladar/{id_nuevo_grupo}/estudiante/{id_estudiante}:
+ * /grupo/{id_grupo}/trasladar/{id_nuevo_grupo}/estudiante/{id_estudiante}/semestre/{semestre}:
  *   put:
  *     summary: Trasladar un estudiante de un grupo a otro grupo
  *     tags: [Grupos]
@@ -340,7 +340,12 @@ router.delete("/:id_grupo/estudiante/:id_estudiante", verifyToken, authorizeRole
  *         schema:
  *           type: string
  *         required: true
- *         description: ID del estudiante a trasladar
+ *       - in: path
+ *         name: semestre
+ *         schema:
+ *           type: string
+ *         required: false
+ *         description: Semestre actual al traslado
  *     responses:
  *       200:
  *         description: Estudiante trasladado al nuevo grupo correctamente
@@ -376,7 +381,7 @@ router.delete("/:id_grupo/estudiante/:id_estudiante", verifyToken, authorizeRole
  *                   type: string
  *                   example: Error interno del servidor ...
  */
-router.put("/:id_grupo/trasladar/:id_nuevo_grupo/estudiante/:id_estudiante", verifyToken, authorizeRoles("ADMINISTRADOR"), grupoController.trasladarEstudianteDeGrupo);
+router.put("/:id_grupo/trasladar/:id_nuevo_grupo/estudiante/:id_estudiante/semestre/:semestre", verifyToken, authorizeRoles("ADMINISTRADOR"), grupoController.trasladarEstudianteDeGrupo);
 
 /**
  * @openapi
@@ -524,7 +529,7 @@ router.get("/asignatura/:id_asignatura/docente/:id_docente", verifyToken, author
 
 /**
  * @openapi
- * /grupo/asignatura/{id_asignatura}:
+ * /grupo/asignatura/{id_asignatura}/semestre/{semestre}:
  *   get:
  *     summary: Consultar grupos de una asignatura
  *     tags: [Grupos]
@@ -534,6 +539,11 @@ router.get("/asignatura/:id_asignatura/docente/:id_docente", verifyToken, author
  *         required: true
  *         schema:
  *           type: integer
+ *      - in: path
+ *         name: semestre
+ *         required: false
+ *         schema:
+ *           type: string
  *     responses:
  *       200:
  *         description: Grupos consultados correctamente
@@ -571,7 +581,7 @@ router.get("/asignatura/:id_asignatura/docente/:id_docente", verifyToken, author
  *                   type: string
  *                   example: "Error interno del servidor: ..."
  */
-router.get("/asignatura/:id_asignatura",verifyToken, authorizeRoles("ADMINISTRADOR"), grupoController.consultarGruposPorAsignatura);
+router.get("/asignatura/:id_asignatura/semestre/:semestre",verifyToken, authorizeRoles("ADMINISTRADOR"), grupoController.consultarGruposPorAsignatura);
 
 /**
  * @openapi
