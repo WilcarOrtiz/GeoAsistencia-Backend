@@ -17,9 +17,9 @@ async function registrarAsistencia(req, res) {
 
 async function cambiarEstadoAsistencia(req, res) {
   try {
-    const { id_grupo, id_estudiante } = req.params;
+    const { id_grupo_periodo, id_estudiante } = req.params;
     const resultado = await asistenciaService.cambiarEstadoAsistencia(
-      id_grupo,
+      id_grupo_periodo,
       id_estudiante
     );
     res.status(200).json(resultado);
@@ -43,9 +43,9 @@ async function validarUbicacion(req, res) {
 
 async function crearAsistenciaManualmente(req, res) {
   try {
-    const { id_grupo, identificacion } = req.body;
+    const { id_grupo_periodo, identificacion } = req.body;
     const resultado = await asistenciaService.generarAsistenciaManualmente(
-      id_grupo,
+      id_grupo_periodo,
       identificacion
     );
     res.status(200).json(resultado);
@@ -56,11 +56,11 @@ async function crearAsistenciaManualmente(req, res) {
 
 async function obtenerAsistenciaPorEstudianteYGrupo(req, res) {
   try {
-    const { id_estudiante, id_grupo } = req.params;
+    const { id_estudiante, id_grupo_periodo } = req.params;
     const resultado =
       await asistenciaService.obtenerAsistenciaPorEstudianteYGrupo(
         id_estudiante,
-        id_grupo
+        id_grupo_periodo
       );
     res.status(200).json(resultado);
   } catch (error) {

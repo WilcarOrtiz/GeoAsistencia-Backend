@@ -17,6 +17,120 @@ const {
   validarExistencia,
 } = require("../utils/validaciones/validarExistenciaModelo");
 
+async function cambiarEstadoAsistencia(id_grupo_periodo, id_estudiante) {
+  try {
+    const { fecha, hora } = obtenerFechaYHoraActual();
+    const estudiante = await validarExistencia(
+      Asistencia,
+      id_estudiante,
+      "El estudiante"
+    );
+
+    await esHoraClaseValida(id_grupo_periodo, fecha, hora);
+
+    const historial = await buscarRegistroPorCondicion(
+      Historial,
+      { id_grupo_periodo, fecha },
+      "La lista de asistencia"
+    );
+
+    const asistencia = await buscarRegistroPorCondicion(
+      Asistencia,
+      {
+        id_estudiante: estudiante.id_estudiante,
+        id_historial_asistencia: historial.id_historial_asistencia,
+      },
+      "La asistencia"
+    );
+
+    const nuevoEstado = !asistencia.estado_asistencia;
+    asistencia.estado_asistencia = nuevoEstado;
+    await asistencia.save();
+
+    return {
+      success: true,
+      mensaje: "Registro de asistencia actualizado.",
+      asistente: id_estudiante,
+    };
+  } catch (error) {
+    throw new Error(
+      `Error al actualizar el registro de la asistencia, ${error.message}`
+    );
+  }
+}
+
+async function generarAsistenciaManualmente(id_grupo_periodo, identificacion) {
+  try {
+    const estudiante = await buscarRegistroPorCondicion(
+      Usuario,
+      { identificacion },
+      "El estudiante"
+    );
+
+    const resultado = await cambiarEstadoAsistencia(
+      id_grupo_periodo,
+      estudiante.id_usuario
+    );
+
+    return {
+      success: true,
+      mensaje: "Asistencia generada correctamente ",
+      Asistencias: resultado,
+    };
+  } catch (error) {
+    throw new Error(
+      `Error al generar la asistencia manualmente: ${error.message}`
+    );
+  }
+}
+
+async function obtenerAsistenciaPorEstudianteYGrupo(
+  id_estudiante,
+  id_grupo_periodo
+) {
+  try {
+    await validarExistencia(Estudiante, id_estudiante, "El estudiante");
+    await validarExistencia(GrupoPeriodo, id_grupo_periodo, "El grupo");
+
+    const asistencias = await Asistencia.findAll({
+      where: {
+        id_estudiante,
+      },
+      include: [
+        {
+          model: Historial,
+          where: { id_grupo_periodo },
+          attributes: ["fecha"],
+        },
+      ],
+      raw: true,
+      nest: true,
+    });
+
+    if (!asistencias) {
+      throw new Error(
+        "En los registro de asistencia no está tu asistencia registrada."
+      );
+    }
+
+    console.log("asistencias", asistencias);
+    const resultadoPlano = asistencias.map((a) => ({
+      id_historial_asistencia: a.id_historial_asistencia,
+      hora: a.hora,
+      estado_asistencia: a.estado_asistencia,
+      fecha: a.HISTORIAL_ASISTENCIum.fecha,
+    }));
+
+    return {
+      success: true,
+      mensaje: "lista de asistencias. ",
+      Asistencias: resultadoPlano,
+    };
+  } catch (error) {
+    throw new Error(`Error al obtener la asistencia: ${error.message}`);
+  }
+}
+
 async function esHoraClaseValida(id_grupo_periodo, fecha, hora) {
   const grupoPeriodo = await GrupoPeriodo.findByPk(id_grupo_periodo, {
     include: {
@@ -52,6 +166,21 @@ async function esHoraClaseValida(id_grupo_periodo, fecha, hora) {
   return { estado_asistencia };
 }
 
+async function validarUbicacion(latitud, longitud) {
+  try {
+    const dentro = await validarUbicacionUtils(latitud, longitud);
+    return {
+      success: true,
+      mensaje: dentro
+        ? "Está dentro de la geocerca"
+        : "Está fuera de la geocerca",
+      dentro,
+    };
+  } catch (error) {
+    throw new Error(`Error al validar la ubicación: ${error.message}`);
+  }
+}
+
 async function registrarAsistencia(id_grupo_periodo, id_estudiante) {
   try {
     const { fecha, hora } = obtenerFechaYHoraActual();
@@ -66,8 +195,9 @@ async function registrarAsistencia(id_grupo_periodo, id_estudiante) {
     const historial_asistencia = await buscarRegistroPorCondicion(
       Historial,
       { id_grupo_periodo, fecha },
-      "El estudiante "
+      "El historial de asistencia"
     );
+
     const id_historial = historial_asistencia.id_historial_asistencia;
 
     const yaRegistrado = await buscarRegistroPorCondicion(Asistencia, {
@@ -95,132 +225,6 @@ async function registrarAsistencia(id_grupo_periodo, id_estudiante) {
     };
   } catch (error) {
     throw new Error(`Error al registrar la asistencia ${error.message}`);
-  }
-}
-
-async function cambiarEstadoAsistencia(id_grupo, id_estudiante) {
-  try {
-    const { fecha, hora } = obtenerFechaYHoraActual();
-    const estudiante = await validarExistencia(
-      Asistencia,
-      id_estudiante,
-      "El estudiante"
-    );
-
-    await esHoraClaseValida(id_grupo, fecha, hora);
-
-    const historial = await buscarRegistroPorCondicion(
-      Historial,
-      { id_grupo, fecha },
-      "La lista de asistencia"
-    );
-
-    const asistencia = await buscarRegistroPorCondicion(
-      Asistencia,
-      {
-        id_estudiante: estudiante.id_estudiante,
-        id_historial_asistencia: historial.id_historial_asistencia,
-      },
-      "La asistencia"
-    );
-
-    const nuevoEstado = !asistencia.estado_asistencia;
-    asistencia.estado_asistencia = nuevoEstado;
-    await asistencia.save();
-
-    return {
-      success: true,
-      mensaje: "Registro de asistencia actualizado.",
-      asistente: id_estudiante,
-    };
-  } catch (error) {
-    throw new Error(
-      `Error al actualizar el registro de la asistencia, ${error.message}`
-    );
-  }
-}
-
-async function generarAsistenciaManualmente(id_grupo, identificacion) {
-  try {
-    const estudiante = await buscarRegistroPorCondicion(
-      Usuario,
-      { identificacion },
-      "El estudiante"
-    );
-
-    const resultado = await cambiarEstadoAsistencia(
-      id_grupo,
-      estudiante.id_usuario
-    );
-
-    return {
-      success: true,
-      mensaje: "Asistencia generada correctamente ",
-      Asistencias: resultado,
-    };
-  } catch (error) {
-    throw new Error(
-      `Error al generar la asistencia manualmente: ${error.message}`
-    );
-  }
-}
-
-async function obtenerAsistenciaPorEstudianteYGrupo(id_estudiante, id_grupo) {
-  try {
-    await validarExistencia(Estudiante, id_estudiante, "El estudiante");
-    await validarExistencia(Grupo, id_grupo, "El grupo");
-
-    const asistencias = await Asistencia.findAll({
-      where: {
-        id_estudiante,
-      },
-      include: [
-        {
-          model: Historial,
-          where: { id_grupo },
-          attributes: ["fecha"],
-        },
-      ],
-      raw: true,
-      nest: true,
-    });
-
-    if (!asistencias) {
-      throw new Error(
-        "En los registro de asistencia no está tu asistencia registrada."
-      );
-    }
-    const resultadoPlano = asistencias.map((a) => ({
-      id_historial_asistencia: a.id_historial_asistencia,
-      hora: a.hora,
-      estado_asistencia: a.estado_asistencia,
-      fecha: a.HISTORIAL_ASISTENCIum.fecha,
-    }));
-
-    return {
-      success: true,
-      mensaje: "lista de asistencias. ",
-      Asistencias: resultadoPlano,
-    };
-  } catch (error) {
-    throw new Error(`Error al obtener la asistencia: ${error.message}`);
-  }
-}
-
-/* _____________________________________________________________   BIEN  _________________________________________________*/
-
-async function validarUbicacion(latitud, longitud) {
-  try {
-    const dentro = await validarUbicacionUtils(latitud, longitud);
-    return {
-      success: true,
-      mensaje: dentro
-        ? "Está dentro de la geocerca"
-        : "Está fuera de la geocerca",
-      dentro,
-    };
-  } catch (error) {
-    throw new Error(`Error al validar la ubicación: ${error.message}`);
   }
 }
 

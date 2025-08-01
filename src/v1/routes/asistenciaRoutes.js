@@ -55,7 +55,7 @@ router.post(
 
 /**
  * @openapi
- * /asistencia/estudiante/{id_estudiante}/grupo/{id_grupo}/estado:
+ * /asistencia/estudiante/{id_estudiante}/grupo/{id_grupo_periodo}/estado:
  *   patch:
  *     tags:
  *       - Asistencia
@@ -69,11 +69,11 @@ router.post(
  *           type: string
  *         description: ID del estudiante
  *       - in: path
- *         name: id_grupo
+ *         name: id_grupo_periodo
  *         required: true
  *         schema:
  *           type: string
- *         description: ID del grupo
+ *         description: ID del grupo en el periodo académico (GRUPO_PERIODO)
  *     security:
  *       - bearerAuth: []
  *     responses:
@@ -99,8 +99,8 @@ router.post(
  *         description: Error interno del servidor
  */
 router.patch(
-  "/estudiante/:id_estudiante/grupo/:id_grupo/estado",
-  validarCampos(["id_estudiante", "id_grupo"], "params"),
+  "/estudiante/:id_estudiante/grupo/:id_grupo_periodo/estado",
+  validarCampos(["id_estudiante", "id_grupo_periodo"], "params"),
   asistenciaController.cambiarEstadoAsistencia
 );
 
@@ -175,10 +175,10 @@ router.post(
  *           schema:
  *             type: object
  *             required:
- *               - id_grupo
+ *               - id_grupo_periodo
  *               - identificacion
  *             properties:
- *               id_grupo:
+ *               id_grupo_periodo:
  *                 type: integer
  *                 example: 22
  *               identificacion:
@@ -208,13 +208,13 @@ router.post(
  */
 router.patch(
   "/manual",
-  validarCampos(["id_grupo", "identificacion"], "body"),
+  validarCampos(["id_grupo_periodo", "identificacion"], "body"),
   asistenciaController.crearAsistenciaManualmente
 );
 
 /**
  * @openapi
- * /asistencia/estudiante/{id_estudiante}/grupo/{id_grupo}:
+ * /asistencia/estudiante/{id_estudiante}/grupo/{id_grupo_periodo}:
  *   get:
  *     tags:
  *       - Asistencia
@@ -228,11 +228,11 @@ router.patch(
  *           type: string
  *         description: ID del estudiante
  *       - in: path
- *         name: id_grupo
+ *         name: id_grupo_periodo
  *         required: true
  *         schema:
  *           type: string
- *         description: ID del grupo
+ *         description: ID del grupo periodo (GRUPO_PERIODO)
  *     security:
  *       - bearerAuth: []
  *     responses:
@@ -297,8 +297,8 @@ router.patch(
  */
 
 router.get(
-  "/estudiante/:id_estudiante/grupo/:id_grupo",
-  validarCampos(["id_estudiante", "id_grupo"], "params"),
+  "/estudiante/:id_estudiante/grupo/:id_grupo_periodo",
+  validarCampos(["id_estudiante", "id_grupo_periodo"], "params"),
   asistenciaController.obtenerAsistenciaPorEstudianteYGrupo
 );
 
