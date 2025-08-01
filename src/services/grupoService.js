@@ -1,25 +1,27 @@
-const { Grupo, Asignatura, Docente, GrupoHorario, Horario, Estudiante, EstudianteGrupo, Usuario, Historial, Asistencia } = require("../models");
+const { Grupo, Asignatura, Docente, GrupoHorario, Horario, Estudiante, EstudianteGrupo, Usuario, Historial, Asistencia, GrupoPeriodo } = require("../models");
 const { validarExistencia, validarEstadoActivo } = require("../utils/validaciones/validarExistenciaModelo");
 const asociarHorariosAGrupo = require("../utils/helpers/asociarHorarios");
 const validarGrupo = require("../utils/validaciones/validarGrupo");
 const { Sequelize, Op } = require("sequelize");
+const { obtenerSemestreActual } = require("../utils/helpers/obtenerSemestreActual");
 
-//DEBE CAMBIAR, AHORA SI TRAE ID_DOCENTE DEBE VALIDARSE Y AGREGAR LA RELACIÓN EN LA TABLA INTERSECTA Y DEBE PEDIR EL SEMESTRE TAMBIEN
 async function crearGrupo(datos) {
   const { id_asignatura, id_docente, codigo, horarios } = datos;
 
   const asignatura = await validarExistencia(Asignatura, id_asignatura, "La asignatura");
   await validarEstadoActivo(asignatura, "La asignatura");
-
-  if (id_docente) {
-      const docente = await validarExistencia(Docente, id_docente, "El docente");
-      await validarEstadoActivo(docente, "El docente");
-  }
   
   const existente = await Grupo.findOne({ where: { codigo } });
   if (existente) throw new Error("El grupo ya está registrado.");
 
-  const grupoCreado = await Grupo.create(datos);
+  const grupoCreado = await Grupo.create({nombre: datos.nombre, codigo: datos.codigo, id_asignatura: id_asignatura, estado_asistencia: datos.estado_asistencia || true});
+
+  if (id_docente) {
+    const docente = await validarExistencia(Docente, id_docente, "El docente");
+    await validarEstadoActivo(docente, "El docente");
+    const semestreActual = obtenerSemestreActual();
+    await GrupoPeriodo.create({periodo: semestreActual, id_docente: id_docente, id_grupo: grupoCreado.id_grupo})
+  }
 
   await asociarHorariosAGrupo(grupoCreado.id_grupo, horarios);
 
