@@ -98,6 +98,7 @@ async function consultarDocentesConSusGrupos(id_docente, periodo) {
     const whereGrupoPeriodo = periodo
       ? { periodo }
       : { periodo: obtenerPeriodoActual() };
+
     const docentes = await Docente.findAll({
       where: whereDocente,
       include: [
@@ -107,7 +108,7 @@ async function consultarDocentesConSusGrupos(id_docente, periodo) {
         },
         {
           model: GrupoPeriodo,
-          where: whereGrupoPeriodo,
+          where: { periodo: whereGrupoPeriodo.periodo },
           required: false,
           include: [
             {
@@ -126,11 +127,7 @@ async function consultarDocentesConSusGrupos(id_docente, periodo) {
     });
 
     if (id_docente && docentes.length === 0) {
-      return {
-        success: false,
-        mensaje: "El docente no está registrado",
-        data: null,
-      };
+      throw new Error("El docente no existe.");
     }
 
     const data = formatearDocentesConAsignaturasYGrupos(docentes);

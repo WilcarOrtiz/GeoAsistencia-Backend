@@ -3,10 +3,10 @@ const manejarError = require("../utils/handlers/manejadorError");
 
 async function registrarAsistencia(req, res) {
   try {
-    const { id_grupo } = req.body;
     const id_estudiante = req.user.uid;
+    const { id_grupo_periodo } = req.params;
     const resultado = await asistenciaService.registrarAsistencia(
-      id_grupo,
+      id_grupo_periodo,
       id_estudiante
     );
     res.status(200).json(resultado);
@@ -31,7 +31,6 @@ async function cambiarEstadoAsistencia(req, res) {
 async function validarUbicacion(req, res) {
   try {
     const { latitud, longitud } = req.body;
-
     const resultado = await asistenciaService.validarUbicacion(
       latitud,
       longitud

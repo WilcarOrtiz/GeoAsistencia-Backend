@@ -34,7 +34,8 @@ async function asignarGruposDeClase(req, res) {
 
 async function consultarDocentesConSusGrupos(req, res) {
   try {
-    const { id_docente, periodo } = req.query;
+    const { periodo } = req.params;
+    const { id_docente } = req.query;
     const data = await docenteService.consultarDocentesConSusGrupos(
       id_docente || null,
       periodo || null

@@ -60,6 +60,8 @@ function formatearUsuariosConAsignaturasYGrupos(usuarios, tipo = "estudiante") {
 
  */
 
+const { id } = require("apicache");
+
 function formatearUsuariosConAsignaturasYGrupos(docentes, tipo = "docente") {
   return docentes.map((docente) => {
     const user = docente.Usuario || {};
@@ -131,6 +133,7 @@ function formatearDocentesConAsignaturasYGrupos(docentes) {
 
       asignaturasMap[idAsignatura].grupos.push({
         id: grupo.id_grupo,
+        id_grupo_periodo: gp.id_grupo_periodo,
         nombre: grupo.nombre,
         codigo: grupo.codigo || "",
         periodo: gp.periodo,

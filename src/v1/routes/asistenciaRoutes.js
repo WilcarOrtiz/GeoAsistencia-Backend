@@ -6,26 +6,21 @@ const validarCampos = require("../../middlewares/validarCamposObligatorios");
 
 /**
  * @openapi
- * /asistencia/registrar:
+ * /asistencia/{id_grupo_periodo}/registrar:
  *   post:
  *     tags:
  *       - Asistencia
  *     summary: Registrar la asistencia de un estudiante en una clase
- *     description: Registra la asistencia de un estudiante autenticado a un grupo/clase usando fecha y hora actual.
+ *     description: Registra la asistencia de un estudiante autenticado a un grupo/clase usando la fecha y hora actual del sistema.
  *     security:
  *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - id_grupo
- *             properties:
- *               id_grupo:
- *                 type: string
- *                 example: 1
+ *     parameters:
+ *       - in: path
+ *         name: id_grupo_periodo
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID del grupo en el periodo académico (GRUPO_PERIODO)
  *     responses:
  *       200:
  *         description: Asistencia registrada exitosamente
@@ -40,9 +35,9 @@ const validarCampos = require("../../middlewares/validarCamposObligatorios");
  *                 mensaje:
  *                   type: string
  *                   example: "Asistencia Registrada"
- *                 asistente:
+ *                 Historial:
  *                   type: string
- *                   example: "UUID_DEL_ESTUDIANTE"
+ *                   example: "Historial: 001"
  *       404:
  *         description: No se encontró el grupo o el estudiante
  *       409:
@@ -50,10 +45,11 @@ const validarCampos = require("../../middlewares/validarCamposObligatorios");
  *       500:
  *         description: Error interno del servidor
  */
+
 router.post(
-  "/registrar",
+  "/:id_grupo_periodo/registrar",
   verifyToken,
-  validarCampos(["id_grupo"], "body"),
+  validarCampos(["id_grupo_periodo"], "params"),
   asistenciaController.registrarAsistencia
 );
 

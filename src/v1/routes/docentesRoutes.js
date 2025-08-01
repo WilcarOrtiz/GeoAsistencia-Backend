@@ -108,9 +108,9 @@ router.post(
 
 /**
  * @openapi
- * /docente/grupos:
+ * /docente/grupos/{periodo}:
  *   get:
- *     summary: Consultar docentes con sus grupos y asignaturas
+ *     summary: Consultar docente(s) con sus grupos y asignaturas
  *     description: Retorna todos los docentes con la lista de grupos a los que pertenecen y las asignaturas asociadas. Si se envía un ID de docente por query param, devuelve únicamente la información de ese docente.
  *     tags:
  *       - Docente
@@ -123,8 +123,8 @@ router.post(
  *           type: string
  *           example: "12345"
  *       - name: periodo
- *         in: query
- *         required: false
+ *         in: path
+ *         required: true
  *         description: periodo académico para filtrar los grupos
  *         schema:
  *           type: string
@@ -188,6 +188,9 @@ router.post(
  *                                   id:
  *                                     type: string
  *                                     example: "14"
+ *                                   id_grupo_periodo:
+ *                                     type: string
+ *                                     example: "14"
  *                                   nombre:
  *                                     type: string
  *                                     example: "Grupo A"
@@ -226,7 +229,12 @@ router.post(
  *                   example: "Error inesperado en el servidor."
  */
 
-router.get("/grupos", docenteController.consultarDocentesConSusGrupos);
+router.get(
+  "/grupos/:periodo",
+  verifyToken,
+  authorizeRoles("ADMINISTRADOR"),
+  docenteController.consultarDocentesConSusGrupos
+);
 
 /**
  * @openapi
@@ -295,6 +303,9 @@ router.get("/grupos", docenteController.consultarDocentesConSusGrupos);
  *                                   id:
  *                                     type: string
  *                                     example: "14"
+ *                                   id_grupo_periodo:
+ *                                     type: string
+ *                                     example: "14"
  *                                   nombre:
  *                                     type: string
  *                                     example: "Grupo A"
@@ -332,6 +343,11 @@ router.get("/grupos", docenteController.consultarDocentesConSusGrupos);
  *                   example: "Error inesperado en el servidor."
  */
 
-router.get("/me", verifyToken, docenteController.obtenerMiPerfil);
+router.get(
+  "/me",
+  verifyToken,
+  authorizeRoles("DOCENTE"),
+  docenteController.obtenerMiPerfil
+);
 
 module.exports = router;

@@ -10,11 +10,13 @@ const { Op } = require("sequelize");
 const sequelize = require("../database/supabase/db");
 const {
   formatearUsuariosConAsignaturasYGrupos,
+  formatearDocentesConAsignaturasYGrupos,
 } = require("../utils/helpers/formatearUsuarioConAsignaturasYGrupos");
 
 const {
   validarExistencia,
 } = require("../utils/validaciones/validarExistenciaModelo");
+const { obtenerPeriodoActual } = require("../utils/helpers/fechaHelpers");
 
 async function obtenerEstudiantesNoAsignadosAGrupo(id_asignatura, periodo) {
   try {
@@ -116,7 +118,7 @@ async function asignarGruposDeClase(id_estudiante, idsGrupoPeriodo) {
 
     const asignaturasEnRequest = new Set();
     const asignados = [];
-    const omitidosMap = new Map(); // motivo => [nombres]
+    const omitidosMap = new Map();
 
     const agregarOmitido = (nombreGrupo, motivo) => {
       if (!omitidosMap.has(motivo)) omitidosMap.set(motivo, []);
@@ -192,9 +194,13 @@ async function asignarGruposDeClase(id_estudiante, idsGrupoPeriodo) {
   }
 }
 
-async function consultarEstudiantesConSusGrupos(id_estudiante) {
+async function consultarEstudiantesConSusGrupos(id_estudiante, periodo) {
   try {
     const whereCondition = id_estudiante ? { id_estudiante } : {};
+    const whereGrupoPeriodo = periodo
+      ? { periodo }
+      : { periodo: obtenerPeriodoActual() };
+
     const estudiantes = await Estudiante.findAll({
       where: whereCondition,
       include: [
@@ -203,15 +209,21 @@ async function consultarEstudiantesConSusGrupos(id_estudiante) {
           attributes: ["identificacion", "nombres", "apellidos", "correo"],
         },
         {
-          model: Grupo,
-          attributes: ["id_grupo", "nombre", "codigo"],
+          model: GrupoPeriodo,
+          where: { periodo: whereGrupoPeriodo.periodo },
+          required: false,
           include: [
             {
-              model: Asignatura,
-              attributes: ["id_asignatura", "nombre"],
+              model: Grupo,
+              attributes: ["id_grupo", "nombre", "codigo"],
+              include: [
+                {
+                  model: Asignatura,
+                  attributes: ["id_asignatura", "nombre", "codigo"],
+                },
+              ],
             },
           ],
-          through: { attributes: [] },
         },
       ],
     });
@@ -220,16 +232,13 @@ async function consultarEstudiantesConSusGrupos(id_estudiante) {
       throw new Error("El estudiante no existe.");
     }
 
-    const data = formatearUsuariosConAsignaturasYGrupos(
-      estudiantes,
-      "estudiante"
-    );
+    const data = formatearDocentesConAsignaturasYGrupos(estudiantes);
 
     return {
       success: true,
       mensaje: id_estudiante
-        ? "Detalle del estudiante con grupos y asignaturas."
-        : "Lista de estudiantes con sus grupos y asignaturas.",
+        ? "Detalle del estudiante con grupos"
+        : "Lista de estudiantes con sus grupos.",
       data,
     };
   } catch (error) {
