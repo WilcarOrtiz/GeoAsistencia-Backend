@@ -34,9 +34,10 @@ async function asignarGruposDeClase(req, res) {
 
 async function consultarDocentesConSusGrupos(req, res) {
   try {
-    const { id_docente } = req.query;
+    const { id_docente, periodo } = req.query;
     const data = await docenteService.consultarDocentesConSusGrupos(
-      id_docente || null
+      id_docente || null,
+      periodo || null
     );
 
     res.status(200).json(data);
@@ -48,7 +49,10 @@ async function consultarDocentesConSusGrupos(req, res) {
 async function obtenerMiPerfil(req, res) {
   try {
     const id_docente = req.user.uid;
-    const data = await docenteService.consultarDocentesConSusGrupos(id_docente);
+    const data = await docenteService.consultarDocentesConSusGrupos(
+      id_docente || null,
+      null
+    );
 
     res.status(200).json(data);
   } catch (error) {

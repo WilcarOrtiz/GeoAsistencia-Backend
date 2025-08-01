@@ -1,9 +1,21 @@
 const { Op } = require("sequelize");
 const { Usuario, Rol, sequelize } = require("../models");
-const { obtenerModeloPorRol,buscarRegistroPorCondicion,} = require("../utils/helpers/modeloHelper");
-const { existeUsuarioCorreoIdentificacion } = require("../utils/validaciones/validarExistenciaCorreoIdentificacion");
-const { crearUsuarioFirebase, actualizarUsuarioFirebase, asignarClaims, existeCorreoEnFirebase,} = require("../utils/helpers/firebaseHelper");
-const { validarExistencia} = require("../utils/validaciones/validarExistenciaModelo");
+const {
+  obtenerModeloPorRol,
+  buscarRegistroPorCondicion,
+} = require("../utils/helpers/modeloHelper");
+const {
+  existeUsuarioCorreoIdentificacion,
+} = require("../utils/validaciones/validarExistenciaCorreoIdentificacion");
+const {
+  crearUsuarioFirebase,
+  actualizarUsuarioFirebase,
+  asignarClaims,
+  existeCorreoEnFirebase,
+} = require("../utils/helpers/firebaseHelper");
+const {
+  validarExistencia,
+} = require("../utils/validaciones/validarExistenciaModelo");
 
 async function crearUsuario(data) {
   const transaction = await sequelize.transaction();
@@ -22,7 +34,13 @@ async function crearUsuario(data) {
 
     await existeCorreoEnFirebase(correo);
     await existeUsuarioCorreoIdentificacion(correo, identificacion);
-    const rol_supabase = await buscarRegistroPorCondicion( Rol, { nombre: rol.toUpperCase() }, "Rol");
+
+    const rol_supabase = await buscarRegistroPorCondicion(
+      Rol,
+      { nombre: rol.toUpperCase() },
+      "Rol"
+    );
+
     const firebaseUser = await crearUsuarioFirebase({
       correo,
       contrasena,
@@ -31,7 +49,8 @@ async function crearUsuario(data) {
     const id_usuario = firebaseUser.uid;
 
     await asignarClaims(id_usuario, { rol, uuid_telefono });
-    const nuevoUsuario= await Usuario.create(
+
+    const nuevoUsuario = await Usuario.create(
       {
         id_usuario,
         identificacion,
@@ -43,18 +62,20 @@ async function crearUsuario(data) {
       { transaction }
     );
 
-    const Modelo = obtenerModeloPorRol(rol.toUpperCase());
-    const idField =
-      rol.toUpperCase() === "DOCENTE" ? "id_docente" : "id_estudiante";
+    if (rol.toUpperCase() !== "ADMINISTRADOR") {
+      const Modelo = obtenerModeloPorRol(rol.toUpperCase());
+      const idField =
+        rol.toUpperCase() === "DOCENTE" ? "id_docente" : "id_estudiante";
 
-    await Modelo.create(
-      {
-        [idField]: id_usuario,
-        uuid_telefono: uuid_telefono ?? null,
-        estado,
-      },
-      { transaction }
-    );
+      await Modelo.create(
+        {
+          [idField]: id_usuario,
+          uuid_telefono: uuid_telefono ?? null,
+          estado,
+        },
+        { transaction }
+      );
+    }
 
     await transaction.commit();
     return {
@@ -62,7 +83,6 @@ async function crearUsuario(data) {
       mensaje: "Usuario registrado correctamente.",
       usuario: nuevoUsuario,
     };
-    
   } catch (error) {
     await transaction.rollback();
     throw new Error(`Error al crear usuario: ${error.message}`);
@@ -81,12 +101,7 @@ async function editarUsuario(data, id_usuario) {
       uuid_telefono,
     } = data;
 
-  
-    const usuario = await validarExistencia(
-      Usuario,
-      id_usuario,
-      "El Usuario"
-    );
+    const usuario = await validarExistencia(Usuario, id_usuario, "El Usuario");
     if (
       (correo && correo !== usuario.correo) ||
       (identificacion && identificacion !== usuario.identificacion)
@@ -121,11 +136,7 @@ async function editarUsuario(data, id_usuario) {
       estado,
     });
 
-    const rolUsuario = await validarExistencia(
-      Rol,
-      usuario.id_rol,
-      "El rol"
-    );
+    const rolUsuario = await validarExistencia(Rol, usuario.id_rol, "El rol");
     const Modelo = obtenerModeloPorRol(rolUsuario.nombre);
     const registro = await validarExistencia(
       Modelo,
@@ -151,11 +162,7 @@ async function editarUsuario(data, id_usuario) {
 
 async function cambiarEstadoUsuario(id_usuario) {
   try {
-    const usuario = await validarExistencia(
-      Usuario,
-      id_usuario,
-      "El Usuario"
-    );
+    const usuario = await validarExistencia(Usuario, id_usuario, "El Usuario");
     const rol = await validarExistencia(
       Rol,
       usuario.id_rol,
@@ -176,7 +183,6 @@ async function cambiarEstadoUsuario(id_usuario) {
       mensaje: `Estado de ${usuario.nombres.toLowerCase()} actualizado.`,
       Estado: registro.estado,
     };
-
   } catch (error) {
     throw new Error(`Error no se pudo cambiar el estado: ${error.message}`);
   }
@@ -218,7 +224,6 @@ async function crearUsuarioMasivamente(datos) {
       }
     }
     return resultados;
-
   } catch (error) {
     throw new Error(`Error al procesar archivo Excel: ${error.message}`);
   }
@@ -233,11 +238,7 @@ async function obtenerUsuarios(filtros = {}) {
 
     // 1. ID usuario
     if (filtros.id_usuario) {
-      await validarExistencia(
-        Usuario,
-        filtros.id_usuario,
-        "El Usuario"
-      );
+      await validarExistencia(Usuario, filtros.id_usuario, "El Usuario");
       whereConditionUsuario.id_usuario = filtros.id_usuario;
     }
 
@@ -260,7 +261,9 @@ async function obtenerUsuarios(filtros = {}) {
     if (filtros.apellidos)
       whereConditionUsuario.apellidos = { [Op.like]: `%${filtros.apellidos}%` };
     if (filtros.identificacion)
-      whereConditionUsuario.identificacion = { [Op.like]: `%${filtros.identificacion}%` };
+      whereConditionUsuario.identificacion = {
+        [Op.like]: `%${filtros.identificacion}%`,
+      };
 
     // 4. Estado (aplicable al modelo asociado)
     if (filtros.estado !== undefined && ModeloAsociado) {
@@ -279,20 +282,19 @@ async function obtenerUsuarios(filtros = {}) {
     // 6. Paginación
     const limit = filtros.limit ? parseInt(filtros.limit, 10) : 50;
     const offset = filtros.offset ? parseInt(filtros.offset, 10) : 0;
-    const resultado= await Usuario.findAll({
+    const resultado = await Usuario.findAll({
       where: whereConditionUsuario,
       include,
       order: [["apellidos", "ASC"]],
       limit,
       offset,
     });
-    
+
     return {
       success: true,
       mensaje: "informacion consultada correctamente.",
       resultado: resultado,
     };
-
   } catch (error) {
     throw new Error(`Error al obtener usuarios: ${error.message}`);
   }

@@ -35,7 +35,10 @@ function validarCamposUsuario(req, res, next) {
     errores.push("La contraseña debe tener al menos 6 caracteres.");
   }
 
-  if (!rol || !["DOCENTE", "ESTUDIANTE"].includes(rol.toUpperCase())) {
+  if (
+    !rol ||
+    !["DOCENTE", "ESTUDIANTE", "ADMINISTRADOR"].includes(rol.toUpperCase())
+  ) {
     errores.push("El rol debe ser DOCENTE o ESTUDIANTE.");
   }
 

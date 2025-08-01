@@ -1,5 +1,5 @@
 const {
-Grupo,
+  Grupo,
   Historial,
   Asistencia,
   Estudiante,
@@ -8,9 +8,7 @@ Grupo,
   Asignatura,
 } = require("../models");
 const { buscarRegistroPorCondicion } = require("../utils/helpers/modeloHelper");
-const {
-  obtenerFechaYHoraActual,
-} = require("../utils/helpers/obtenerFechaHoraActual");
+const { obtenerFechaYHoraActual } = require("../utils/helpers/fechaHelpers");
 const validarHorario = require("../utils/validaciones/validarHorario");
 const {
   validarUbicacion: validarUbicacionUtils,

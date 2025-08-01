@@ -7,7 +7,6 @@ const validarCampos = require("../../middlewares/validarCamposObligatorios");
 const {
   validarCamposUsuario,
   validarArchivoExcel,
-  validarIdObligatorio,
 } = require("../../middlewares/Usuario/validarUsuario");
 
 const { verifyToken } = require("../../middlewares/verifyToken");
@@ -66,7 +65,7 @@ const { authorizeRoles } = require("../../middlewares/authorizeRoles");
 router.post(
   "/registrar",
   verifyToken,
-  authorizeRoles("DOCENTE"),
+  authorizeRoles("ADMINISTRADOR"),
   validarCamposUsuario,
   usuarioController.registrarUsuario
 );
@@ -118,6 +117,8 @@ router.post(
  */
 router.patch(
   "/:id_usuario/estado",
+  verifyToken,
+  authorizeRoles("ADMINISTRADOR"),
   validarCampos(["id_usuario"], "params"),
   usuarioController.cambiarEstadoUsuario
 );
@@ -206,6 +207,8 @@ router.patch(
  */
 router.post(
   "/carga-masiva",
+  verifyToken,
+  authorizeRoles("ADMINISTRADOR"),
   upload.single("archivo"),
   validarArchivoExcel,
   usuarioController.crearUsuarioMasivamente
@@ -273,6 +276,8 @@ router.post(
  */
 router.put(
   "/editar/:id_usuario",
+  verifyToken,
+  authorizeRoles("ADMINISTRADOR"),
   validarCampos(["id_usuario"], "params"),
   usuarioController.editarUsuario
 );
@@ -374,6 +379,11 @@ router.put(
  *                   type: string
  *                   example: "Error al obtener usuarios"
  */
-router.get("/listar", usuarioController.obtenerUsuarios);
+router.get(
+  "/listar",
+  verifyToken,
+  authorizeRoles("ADMINISTRADOR"),
+  usuarioController.obtenerUsuarios
+);
 
 module.exports = router;

@@ -1,3 +1,7 @@
+/*
+esta es la que tenia
+
+
 function formatearUsuariosConAsignaturasYGrupos(usuarios, tipo = "estudiante") {
   return usuarios.map((usuario) => {
     const user = usuario.Usuario || usuario.USUARIO || {};
@@ -53,6 +57,101 @@ function formatearUsuariosConAsignaturasYGrupos(usuarios, tipo = "estudiante") {
   });
 }
 
+
+ */
+
+function formatearUsuariosConAsignaturasYGrupos(docentes, tipo = "docente") {
+  return docentes.map((docente) => {
+    const user = docente.Usuario || {};
+    const grupoPeriodos = docente.GrupoPeriodos || [];
+
+    const asignaturasMap = {};
+
+    grupoPeriodos.forEach((gp) => {
+      const grupo = gp.Grupo;
+      if (!grupo) return;
+
+      const asignatura = grupo.Asignatura;
+      if (!asignatura) return;
+
+      const idAsignatura = asignatura.id_asignatura;
+
+      if (!asignaturasMap[idAsignatura]) {
+        asignaturasMap[idAsignatura] = {
+          id: idAsignatura,
+          nombre: asignatura.nombre,
+          grupos: [],
+        };
+      }
+
+      asignaturasMap[idAsignatura].grupos.push({
+        id: grupo.id_grupo,
+        nombre: grupo.nombre,
+        codigo: grupo.codigo || "",
+        periodo: gp.periodo,
+      });
+    });
+
+    return {
+      id: docente.id_docente,
+      uuidTelefono: docente.uuid_telefono || null,
+      identificacion: user.identificacion || "",
+      estado: docente.estado,
+      nombreCompleto: `${user.nombres || ""} ${user.apellidos || ""}`.trim(),
+      correo: user.correo || "",
+      asignaturas: Object.values(asignaturasMap),
+    };
+  });
+}
+
+function formatearDocentesConAsignaturasYGrupos(docentes) {
+  return docentes.map((docente) => {
+    const usuario = docente.USUARIO || {};
+    const grupoPeriodos = docente.GRUPO_PERIODOs || [];
+
+    const asignaturasMap = {};
+
+    grupoPeriodos.forEach((gp) => {
+      const grupo = gp.GRUPO;
+      if (!grupo) return;
+
+      const asignatura = grupo.ASIGNATURA;
+      if (!asignatura) return;
+
+      const idAsignatura = asignatura.id_asignatura;
+
+      if (!asignaturasMap[idAsignatura]) {
+        asignaturasMap[idAsignatura] = {
+          id: idAsignatura,
+          nombre: asignatura.nombre,
+          codigo: asignatura.codigo || "",
+          grupos: [],
+        };
+      }
+
+      asignaturasMap[idAsignatura].grupos.push({
+        id: grupo.id_grupo,
+        nombre: grupo.nombre,
+        codigo: grupo.codigo || "",
+        periodo: gp.periodo,
+      });
+    });
+
+    return {
+      id: docente.id_docente,
+      uuidTelefono: docente.uuid_telefono || null,
+      estado: docente.estado,
+      identificacion: usuario.identificacion || "",
+      nombreCompleto:
+        `${usuario.nombres || ""} ${usuario.apellidos || ""}`.trim(),
+      correo: usuario.correo || "",
+
+      asignaturas: Object.values(asignaturasMap),
+    };
+  });
+}
+
 module.exports = {
   formatearUsuariosConAsignaturasYGrupos,
+  formatearDocentesConAsignaturasYGrupos,
 };
