@@ -3,20 +3,28 @@ const router = express.Router();
 const estudianteController = require("../../controllers/estudiantesController");
 const validarCampos = require("../../middlewares/validarCamposObligatorios");
 const { verifyToken } = require("../../middlewares/verifyToken");
+const { authorizeRoles } = require("../../middlewares/authorizeRoles");
 
 /**
  * @openapi
- * /estudiante/sin-grupo/{id_asignatura}:
+ * /estudiante/sin-grupo/{id_asignatura}/{periodo}:
  *   get:
  *     tags:
  *       - Estudiante
- *     summary: Obtiene todos los estudiantes que NO estan registrados en ningun grupo de esa asignatura
+ *     summary: Obtiene todos los estudiantes que NO estan registrados en ningun grupo de esa asignatura para el periodo especificado.
  *     parameters:
  *       - in: path
- *         name: id_asignatura 
+ *         name: id_asignatura
+ *         required: true
  *         schema:
  *           type: string
  *         description: ID de la asignatura
+ *       - in: path
+ *         name: periodo
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Período académico "2025-2"
  *     responses:
  *       200:
  *         description: Lista de estudiantes obtenida correctamente
@@ -28,10 +36,29 @@ const { verifyToken } = require("../../middlewares/verifyToken");
  *                 success:
  *                   type: boolean
  *                   example: true
- *                 usuarios:
+ *                 mensaje:
+ *                   type: string
+ *                   example: "Estudiantes fuera de Programación Móvil período 2025-1."
+ *                 estudiantes:
  *                   type: array
  *                   items:
- *                     $ref: '#/components/schemas/Usuario'
+ *                     type: object
+ *                     properties:
+ *                       id_estudiante:
+ *                         type: string
+ *                         example: "XDIpEdPHFENBjIjtWjOk3w3jdYT2"
+ *                       identificacion:
+ *                         type: string
+ *                         example: "1232123212"
+ *                       nombres:
+ *                         type: string
+ *                         example: "Carlos Andrés"
+ *                       apellidos:
+ *                         type: string
+ *                         example: "Pérez Gómez"
+ *                       correo:
+ *                         type: string
+ *                         example: "perez@unicesar.edu.co"
  *       400:
  *         description: Error al obtener los estudiantes
  *         content:
@@ -47,8 +74,10 @@ const { verifyToken } = require("../../middlewares/verifyToken");
  *                   example: "Error al obtener usuarios"
  */
 router.get(
-  "/sin-grupo/:id_asignatura",
-  validarCampos(["id_asignatura"], "params"),
+  "/sin-grupo/:id_asignatura/:periodo",
+  verifyToken,
+  authorizeRoles("ADMINISTRADOR"),
+  validarCampos(["id_asignatura", "periodo"], "params"),
   estudianteController.obtenerEstudiantesNoAsignadosAGrupo
 );
 
@@ -57,7 +86,14 @@ router.get(
  * /estudiante/{id_estudiante}/grupos:
  *   post:
  *     summary: Asignar grupos de clase a un estudiante
- *     description: Asigna uno o varios grupos a un estudiante en la tabla intermedia ESTUDIANTE_GRUPO, evitando duplicados y conflictos por asignaturas.
+ *     description: >
+ *       Asigna uno o varios grupos a un estudiante en la tabla intermedia ESTUDIANTE_GRUPO.
+ *       La función evita asignaciones duplicadas y conflictos por asignaturas, permitiendo que
+ *       un estudiante esté en un solo grupo por asignatura en un mismo período académico.
+ *       También valida que los grupos existan antes de intentar la asignación.
+ *
+ *       - **grupos** (Body): se refiere a los id_grupo_periodo, ya que la entidad grupo es atemporal,
+ *         pero grupo_periodo no (lo que permite discernir entre grupos de diferentes semestres).
  *     tags:
  *       - Estudiante
  *     parameters:
@@ -77,11 +113,11 @@ router.get(
  *             properties:
  *               grupos:
  *                 type: array
- *                 description: Lista de IDs de grupos a asignar
+ *                 description: Lista de IDs de grupo_periodo a asignar.
  *                 items:
  *                   type: integer
  *             example:
- *               grupos: [14,18,4]
+ *               grupos: [14, 18, 4]
  *     responses:
  *       200:
  *         description: Grupos asignados correctamente, mostrando cuáles fueron registrados y cuáles se omitieron con motivo.
@@ -95,25 +131,38 @@ router.get(
  *                   example: true
  *                 mensaje:
  *                   type: string
- *                   example: "Grupos asignados correctamente."
+ *                   example: "No se asignaron nuevos grupos."
  *                 registrados:
  *                   type: array
  *                   description: Lista de grupos que se registraron exitosamente
  *                   items:
  *                     type: string
- *                   example: ["14", "18"]
+ *                   example: []
  *                 omitidos:
  *                   type: array
- *                   description: Lista de grupos que no se asignaron, con motivo
+ *                   description: Lista de grupos que no se asignaron, agrupados por motivo
  *                   items:
  *                     type: object
  *                     properties:
- *                       id_grupo:
- *                         type: string
- *                         example: "4"
+ *                       grupos:
+ *                         type: array
+ *                         items:
+ *                           type: string
+ *                         example: ["Grupo A", "Grupo B"]
  *                       motivo:
  *                         type: string
- *                         example: "Conflicto: ya seleccionó otro grupo de la misma asignatura"
+ *                         example: "Ya tiene un grupo de esta asignatura"
+ *             example:
+ *               success: true
+ *               mensaje: "No se asignaron nuevos grupos."
+ *               registrados: []
+ *               omitidos:
+ *                 - grupos: ["Grupo A"]
+ *                   motivo: "Ya asignado al estudiante"
+ *                 - grupos: ["Grupo B"]
+ *                   motivo: "Ya tiene un grupo de esta asignatura"
+ *                 - grupos: [" ID 7"]
+ *                   motivo: "El grupo no existe"
  *       400:
  *         description: Error de validación
  *         content:
@@ -151,9 +200,9 @@ router.post(
 
 /**
  * @openapi
- * /estudiante/grupos:
+ * /estudiante/grupos/{periodo}:
  *   get:
- *     summary: Consultar estudiantes con sus grupos y asignaturas
+ *     summary: Consultar estudiante(s) con sus grupos y asignaturas
  *     description: Retorna todos los estudiantes con la lista de grupos a los que pertenecen y las asignaturas asociadas. Si se envía un ID de estudiante por query param, devuelve únicamente la información de ese estudiante.
  *     tags:
  *       - Estudiante
@@ -165,9 +214,16 @@ router.post(
  *         schema:
  *           type: string
  *           example: "12345"
+ *       - name: periodo
+ *         in: path
+ *         required: true
+ *         description: periodo académico para filtrar los grupos
+ *         schema:
+ *           type: string
+ *           example: "2025-2"
  *     responses:
  *       200:
- *         description: Lista de estudiantes con sus grupos y asignaturas
+ *         description: Lista de docentes con sus asignaturas
  *         content:
  *           application/json:
  *             schema:
@@ -178,7 +234,7 @@ router.post(
  *                   example: true
  *                 mensaje:
  *                   type: string
- *                   example: "Lista de estudiantes con sus grupos y asignaturas."
+ *                   example: "Lista de estudiantes con sus grupos."
  *                 data:
  *                   type: array
  *                   items:
@@ -186,39 +242,57 @@ router.post(
  *                     properties:
  *                       id:
  *                         type: string
- *                         example: "E001"
- *                       nombreCompleto:
- *                         type: string
- *                         example: "Juan Pérez"
- *                       correo:
- *                         type: string
- *                         example: "juan.perez@email.com"
+ *                         example: "8INV6ygSwxV8OOsR4keetq4hv3V2"
  *                       uuidTelefono:
  *                         type: string
- *                         example: "aabbccdd-1122-3344"
+ *                         example: "aabbccdd-1122-3341"
+ *                       identificacion:
+ *                         type: string
+ *                         example: "1111111111"
  *                       estado:
  *                         type: boolean
  *                         example: true
- *                       grupos:
+ *                       nombreCompleto:
+ *                         type: string
+ *                         example: "Wilcar Daniel Ortiz Colpas"
+ *                       correo:
+ *                         type: string
+ *                         example: "daniel@unicesar.edu.co"
+ *                       asignaturas:
  *                         type: array
  *                         items:
  *                           type: object
  *                           properties:
  *                             id:
- *                               type: integer
- *                               example: 5
+ *                               type: string
+ *                               example: "1"
  *                             nombre:
  *                               type: string
- *                               example: "Grupo A"
- *                             asignatura:
- *                               type: object
- *                               properties:
- *                                 id:
- *                                   type: integer
- *                                   example: 10
- *                                 nombre:
- *                                   type: string
- *                                   example: "Programación I"
+ *                               example: "Lógica de Programación IV"
+ *                             codigo:
+ *                               type: string
+ *                               example: "ProG-IV-01"
+ *                             grupos:
+ *                               type: array
+ *                               items:
+ *                                 type: object
+ *                                 properties:
+ *                                   id:
+ *                                     type: string
+ *                                     example: "14"
+ *                                   id_grupo_periodo:
+ *                                     type: string
+ *                                     example: "14"
+ *                                   nombre:
+ *                                     type: string
+ *                                     example: "Grupo A"
+ *                                   codigo:
+ *                                     type: string
+ *                                     example: "GRP-A-01"
+ *                                   periodo:
+ *                                     type: string
+ *                                     example: "2025-1"
+ *
  *       400:
  *         description: Error en la consulta
  *         content:
@@ -247,7 +321,12 @@ router.post(
  *                   example: "Error inesperado en el servidor."
  */
 
-router.get("/grupos", estudianteController.consultarEstudiantesConSusGrupos);
+router.get(
+  "/grupos/:periodo",
+  verifyToken,
+  authorizeRoles("ADMINISTRADOR"),
+  estudianteController.consultarEstudiantesConSusGrupos
+);
 
 /**
  * @openapi
@@ -259,7 +338,7 @@ router.get("/grupos", estudianteController.consultarEstudiantesConSusGrupos);
  *       - Estudiante
  *     responses:
  *       200:
- *         description: Detalle del estudiante con grupos y asignaturas.
+ *         description: Lista de docentes con sus asignaturas
  *         content:
  *           application/json:
  *             schema:
@@ -270,7 +349,7 @@ router.get("/grupos", estudianteController.consultarEstudiantesConSusGrupos);
  *                   example: true
  *                 mensaje:
  *                   type: string
- *                   example: "Detalle del estudiante con grupos y asignaturas."
+ *                   example: "Lista de estudiantes con sus grupos."
  *                 data:
  *                   type: array
  *                   items:
@@ -278,39 +357,56 @@ router.get("/grupos", estudianteController.consultarEstudiantesConSusGrupos);
  *                     properties:
  *                       id:
  *                         type: string
- *                         example: "E001"
- *                       nombreCompleto:
- *                         type: string
- *                         example: "Juan Pérez"
- *                       correo:
- *                         type: string
- *                         example: "juan.perez@email.com"
+ *                         example: "8INV6ygSwxV8OOsR4keetq4hv3V2"
  *                       uuidTelefono:
  *                         type: string
- *                         example: "aabbccdd-1122-3344"
+ *                         example: "aabbccdd-1122-3341"
+ *                       identificacion:
+ *                         type: string
+ *                         example: "1111111111"
  *                       estado:
  *                         type: boolean
  *                         example: true
- *                       grupos:
+ *                       nombreCompleto:
+ *                         type: string
+ *                         example: "Wilcar Daniel Ortiz Colpas"
+ *                       correo:
+ *                         type: string
+ *                         example: "daniel@unicesar.edu.co"
+ *                       asignaturas:
  *                         type: array
  *                         items:
  *                           type: object
  *                           properties:
  *                             id:
- *                               type: integer
- *                               example: 5
+ *                               type: string
+ *                               example: "1"
  *                             nombre:
  *                               type: string
- *                               example: "Grupo A"
- *                             asignatura:
- *                               type: object
- *                               properties:
- *                                 id:
- *                                   type: integer
- *                                   example: 10
- *                                 nombre:
- *                                   type: string
- *                                   example: "Programación I"
+ *                               example: "Lógica de Programación IV"
+ *                             codigo:
+ *                               type: string
+ *                               example: "ProG-IV-01"
+ *                             grupos:
+ *                               type: array
+ *                               items:
+ *                                 type: object
+ *                                 properties:
+ *                                   id:
+ *                                     type: string
+ *                                     example: "14"
+ *                                   id_grupo_periodo:
+ *                                     type: string
+ *                                     example: "14"
+ *                                   nombre:
+ *                                     type: string
+ *                                     example: "Grupo A"
+ *                                   codigo:
+ *                                     type: string
+ *                                     example: "GRP-A-01"
+ *                                   periodo:
+ *                                     type: string
+ *                                     example: "2025-1"
  *       400:
  *         description: Error en la consulta
  *         content:
@@ -339,6 +435,11 @@ router.get("/grupos", estudianteController.consultarEstudiantesConSusGrupos);
  *                   example: "Error inesperado en el servidor."
  */
 
-router.get("/me", verifyToken, estudianteController.obtenerMiPerfil);
+router.get(
+  "/me",
+  verifyToken,
+  authorizeRoles("ESTUDIANTE"),
+  estudianteController.obtenerMiPerfil
+);
 
 module.exports = router;

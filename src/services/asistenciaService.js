@@ -1,16 +1,14 @@
 const {
-Grupo,
+  Grupo,
   Historial,
   Asistencia,
   Estudiante,
   Horario,
   Usuario,
-  Asignatura,
+  GrupoPeriodo,
 } = require("../models");
 const { buscarRegistroPorCondicion } = require("../utils/helpers/modeloHelper");
-const {
-  obtenerFechaYHoraActual,
-} = require("../utils/helpers/obtenerFechaHoraActual");
+const { obtenerFechaYHoraActual } = require("../utils/helpers/fechaHelpers");
 const validarHorario = require("../utils/validaciones/validarHorario");
 const {
   validarUbicacion: validarUbicacionUtils,
@@ -19,22 +17,26 @@ const {
   validarExistencia,
 } = require("../utils/validaciones/validarExistenciaModelo");
 
-async function esHoraClaseValida(id_grupo, fecha, hora) {
-  const grupo = await Grupo.findByPk(id_grupo, {
-    attributes: ["estado_asistencia"],
+async function esHoraClaseValida(id_grupo_periodo, fecha, hora) {
+  const grupoPeriodo = await GrupoPeriodo.findByPk(id_grupo_periodo, {
     include: {
-      model: Horario,
-      as: "horarios",
-      attributes: ["id_dia", "hora_inicio", "hora_fin"],
+      model: Grupo,
+      include: {
+        model: Horario,
+        through: { attributes: [] },
+      },
     },
   });
 
-  if (!grupo) {
+  if (!grupoPeriodo) {
     throw new Error("El grupo no está registrado");
   }
 
+  const horarios = grupoPeriodo.GRUPO.HORARIOs;
+  const estado_asistencia = grupoPeriodo.GRUPO.estado_asistencia;
+
   const fechaSolicitud = new Date(`${fecha}T${hora}`);
-  const enHorario = grupo.horarios.some((h) => {
+  const enHorario = horarios.some((h) => {
     const horarioNormalizado = {
       id_dia: Number(h.id_dia),
       hora_inicio: h.hora_inicio.slice(0, 5),
@@ -47,27 +49,30 @@ async function esHoraClaseValida(id_grupo, fecha, hora) {
     throw new Error("Actualmente no está en horario de clase");
   }
 
-  return { estado_asistencia: grupo.estado_asistencia };
+  return { estado_asistencia };
 }
 
-async function registrarAsistencia(id_grupo, id_estudiante) {
+async function registrarAsistencia(id_grupo_periodo, id_estudiante) {
   try {
     const { fecha, hora } = obtenerFechaYHoraActual();
     await validarExistencia(Estudiante, id_estudiante, "El estudiante");
-    const grupoClase = await esHoraClaseValida(id_grupo, fecha, hora);
+    await validarExistencia(GrupoPeriodo, id_grupo_periodo, "El grupo");
+    const grupoClase = await esHoraClaseValida(id_grupo_periodo, fecha, hora);
+
     if (!grupoClase.estado_asistencia) {
       throw new Error("La asistencia para este grupo no está habilitada.");
     }
 
     const historial_asistencia = await buscarRegistroPorCondicion(
       Historial,
-      { id_grupo, fecha },
+      { id_grupo_periodo, fecha },
       "El estudiante "
     );
+    const id_historial = historial_asistencia.id_historial_asistencia;
 
     const yaRegistrado = await buscarRegistroPorCondicion(Asistencia, {
       id_estudiante,
-      id_historial_asistencia: historial_asistencia.id_historial_asistencia,
+      id_historial_asistencia: id_historial,
     });
 
     if (yaRegistrado) {
@@ -78,7 +83,7 @@ async function registrarAsistencia(id_grupo, id_estudiante) {
 
     await Asistencia.create({
       id_estudiante,
-      id_historial_asistencia: historial_asistencia.id_historial_asistencia,
+      id_historial_asistencia: id_historial,
       hora,
       estado_asistencia: true,
     });
@@ -86,7 +91,7 @@ async function registrarAsistencia(id_grupo, id_estudiante) {
     return {
       success: true,
       mensaje: "Asistencia Registrada",
-      asistente: id_estudiante,
+      Historial: `Historial: ${id_historial}`,
     };
   } catch (error) {
     throw new Error(`Error al registrar la asistencia ${error.message}`);
@@ -132,21 +137,6 @@ async function cambiarEstadoAsistencia(id_grupo, id_estudiante) {
     throw new Error(
       `Error al actualizar el registro de la asistencia, ${error.message}`
     );
-  }
-}
-
-async function validarUbicacion(latitud, longitud) {
-  try {
-    const dentro = await validarUbicacionUtils(latitud, longitud);
-    return {
-      success: true,
-      mensaje: dentro
-        ? "Está dentro de la geocerca"
-        : "Está fuera de la geocerca",
-      dentro,
-    };
-  } catch (error) {
-    throw new Error(`Error al validar la ubicación: ${error.message}`);
   }
 }
 
@@ -214,6 +204,23 @@ async function obtenerAsistenciaPorEstudianteYGrupo(id_estudiante, id_grupo) {
     };
   } catch (error) {
     throw new Error(`Error al obtener la asistencia: ${error.message}`);
+  }
+}
+
+/* _____________________________________________________________   BIEN  _________________________________________________*/
+
+async function validarUbicacion(latitud, longitud) {
+  try {
+    const dentro = await validarUbicacionUtils(latitud, longitud);
+    return {
+      success: true,
+      mensaje: dentro
+        ? "Está dentro de la geocerca"
+        : "Está fuera de la geocerca",
+      dentro,
+    };
+  } catch (error) {
+    throw new Error(`Error al validar la ubicación: ${error.message}`);
   }
 }
 

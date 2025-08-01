@@ -71,6 +71,9 @@ Horario.belongsToMany(Grupo, {
 Horario.belongsTo(Dia, { foreignKey: "id_dia" });
 Dia.hasMany(Horario, { foreignKey: "id_dia" });
 
+EstudianteGrupo.belongsTo(GrupoPeriodo, { foreignKey: "id_grupo_periodo" });
+GrupoPeriodo.hasMany(EstudianteGrupo, { foreignKey: "id_grupo_periodo" });
+
 module.exports = {
   sequelize,
   Usuario,

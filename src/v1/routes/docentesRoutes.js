@@ -10,7 +10,7 @@ const validarCampos = require("../../middlewares/validarCamposObligatorios");
  * /docente/{id_docente}/grupos:
  *   post:
  *     summary: Asignar grupos de clase a un docente
- *     description: Asigna uno o varios grupos a un docente.
+ *     description: Asigna uno o varios grupos a un docente, para ello se debe enviar los IDs correspondientes a los id_grupo_periodo, originados al momento de crear un grupo de clase. Teniendo en cuenta que la relación se hace directamente con el grupo_periodo, y no con el grupo.
  *     tags:
  *       - Docente
  *     parameters:
@@ -34,10 +34,10 @@ const validarCampos = require("../../middlewares/validarCamposObligatorios");
  *                 items:
  *                   type: integer
  *             example:
- *               grupos: [14,18,4]
+ *               grupos: [14, 18, 4]
  *     responses:
  *       200:
- *         description: Grupos asignados correctamente, mostrando cuáles fueron registrados y cuáles se omitieron con motivo.
+ *         description: Resultado de la asignación de grupos al docente, indicando los grupos registrados y los que fueron omitidos agrupados por motivo.
  *         content:
  *           application/json:
  *             schema:
@@ -48,25 +48,27 @@ const validarCampos = require("../../middlewares/validarCamposObligatorios");
  *                   example: true
  *                 mensaje:
  *                   type: string
- *                   example: "Grupos asignados correctamente."
+ *                   example: "No se asignaron nuevos grupos."
  *                 registrados:
  *                   type: array
  *                   description: Lista de grupos que se registraron exitosamente
  *                   items:
  *                     type: string
- *                   example: ["14", "18"]
+ *                   example: []
  *                 omitidos:
  *                   type: array
- *                   description: Lista de grupos que no se asignaron, con motivo
+ *                   description: Lista de grupos que no se asignaron, agrupados por motivo
  *                   items:
  *                     type: object
  *                     properties:
- *                       id_grupo:
- *                         type: string
- *                         example: "4"
  *                       motivo:
  *                         type: string
- *                         example: "Este grupo ya tiene un docente asignado."
+ *                         example: "Este grupo no existe en el sistema."
+ *                       grupos:
+ *                         type: array
+ *                         items:
+ *                           type: string
+ *                         example: ["ID 14", "ID 18", "ID 4"]
  *       400:
  *         description: Error de validación
  *         content:
@@ -97,6 +99,8 @@ const validarCampos = require("../../middlewares/validarCamposObligatorios");
 
 router.post(
   "/:id_docente/grupos",
+  verifyToken,
+  authorizeRoles("ADMINISTRADOR"),
   validarCampos(["id_docente"], "params"),
   validarCampos(["grupos"], "body"),
   docenteController.asignarGruposDeClase
@@ -104,9 +108,9 @@ router.post(
 
 /**
  * @openapi
- * /docente/grupos:
+ * /docente/grupos/{periodo}:
  *   get:
- *     summary: Consultar docentes con sus grupos y asignaturas
+ *     summary: Consultar docente(s) con sus grupos y asignaturas
  *     description: Retorna todos los docentes con la lista de grupos a los que pertenecen y las asignaturas asociadas. Si se envía un ID de docente por query param, devuelve únicamente la información de ese docente.
  *     tags:
  *       - Docente
@@ -118,6 +122,13 @@ router.post(
  *         schema:
  *           type: string
  *           example: "12345"
+ *       - name: periodo
+ *         in: path
+ *         required: true
+ *         description: periodo académico para filtrar los grupos
+ *         schema:
+ *           type: string
+ *           example: "2025-2"
  *     responses:
  *       200:
  *         description: Lista de docentes con sus asignaturas y grupos
@@ -166,6 +177,9 @@ router.post(
  *                             nombre:
  *                               type: string
  *                               example: "Lógica de Programación IV"
+ *                             codigo:
+ *                               type: string
+ *                               example: "ProG-IV-01"
  *                             grupos:
  *                               type: array
  *                               items:
@@ -174,12 +188,19 @@ router.post(
  *                                   id:
  *                                     type: string
  *                                     example: "14"
+ *                                   id_grupo_periodo:
+ *                                     type: string
+ *                                     example: "14"
  *                                   nombre:
  *                                     type: string
  *                                     example: "Grupo A"
  *                                   codigo:
  *                                     type: string
  *                                     example: "GRP-A-01"
+ *                                   periodo:
+ *                                     type: string
+ *                                     example: "2025-1"
+ *
  *       400:
  *         description: Error en la consulta
  *         content:
@@ -208,7 +229,12 @@ router.post(
  *                   example: "Error inesperado en el servidor."
  */
 
-router.get("/grupos", docenteController.consultarDocentesConSusGrupos);
+router.get(
+  "/grupos/:periodo",
+  verifyToken,
+  authorizeRoles("ADMINISTRADOR"),
+  docenteController.consultarDocentesConSusGrupos
+);
 
 /**
  * @openapi
@@ -220,7 +246,7 @@ router.get("/grupos", docenteController.consultarDocentesConSusGrupos);
  *       - Docente
  *     responses:
  *       200:
- *         description: Detalle del docente con grupos y asignaturas.
+ *         description: Lista de docentes con sus asignaturas y grupos
  *         content:
  *           application/json:
  *             schema:
@@ -231,7 +257,7 @@ router.get("/grupos", docenteController.consultarDocentesConSusGrupos);
  *                   example: true
  *                 mensaje:
  *                   type: string
- *                   example: "Detalle del docente con grupos y asignaturas."
+ *                   example: "Lista de docentes con sus grupos y asignaturas."
  *                 data:
  *                   type: array
  *                   items:
@@ -266,6 +292,9 @@ router.get("/grupos", docenteController.consultarDocentesConSusGrupos);
  *                             nombre:
  *                               type: string
  *                               example: "Lógica de Programación IV"
+ *                             codigo:
+ *                               type: string
+ *                               example: "ProG-IV-01"
  *                             grupos:
  *                               type: array
  *                               items:
@@ -274,12 +303,18 @@ router.get("/grupos", docenteController.consultarDocentesConSusGrupos);
  *                                   id:
  *                                     type: string
  *                                     example: "14"
+ *                                   id_grupo_periodo:
+ *                                     type: string
+ *                                     example: "14"
  *                                   nombre:
  *                                     type: string
  *                                     example: "Grupo A"
  *                                   codigo:
  *                                     type: string
  *                                     example: "GRP-A-01"
+ *                                   periodo:
+ *                                     type: string
+ *                                     example: "2025-1"
  *       400:
  *         description: Error en la consulta
  *         content:
@@ -308,6 +343,11 @@ router.get("/grupos", docenteController.consultarDocentesConSusGrupos);
  *                   example: "Error inesperado en el servidor."
  */
 
-router.get("/me", verifyToken, docenteController.obtenerMiPerfil);
+router.get(
+  "/me",
+  verifyToken,
+  authorizeRoles("DOCENTE"),
+  docenteController.obtenerMiPerfil
+);
 
 module.exports = router;

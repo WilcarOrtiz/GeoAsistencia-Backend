@@ -1,72 +1,66 @@
-const { Usuario, Docente, Grupo, Asignatura } = require("../models");
-const sequelize = require("../database/supabase/db");
 const {
-  formatearUsuariosConAsignaturasYGrupos,
+  Usuario,
+  Docente,
+  Grupo,
+  Asignatura,
+  GrupoPeriodo,
+} = require("../models");
+const sequelize = require("../database/supabase/db");
+
+const {
+  formatearDocentesConAsignaturasYGrupos,
 } = require("../utils/helpers/formatearUsuarioConAsignaturasYGrupos");
+
 const {
   validarExistencia,
 } = require("../utils/validaciones/validarExistenciaModelo");
 
-async function docentesActivos() {
-  try {
-    const docentes_Activos = await Usuario.findAll({
-      include: [
-        {
-          model: Docente,
-          where: { estado: true },
-          required: true,
-        },
-      ],
-    });
+const { obtenerPeriodoActual } = require("../utils/helpers/fechaHelpers");
 
-    return {
-      success: true,
-      mensaje: "Docentes activos",
-      docentes: docentes_Activos,
-    };
-  } catch (error) {
-    throw new Error(
-      `Error al consultar docentes activos en el sistema: ${error.message}`
-    );
-  }
-}
-
-async function asignarGruposADocente(id_docente, grupos) {
+async function asignarGruposADocente(id_docente, grupoPeriodos) {
   const transaction = await sequelize.transaction();
   try {
     await validarExistencia(Docente, id_docente, "El docente");
 
-    // 1. Validar existencia de los grupos enviados
-    const gruposEncontrados = await Grupo.findAll({
-      where: { id_grupo: grupos },
-      attributes: ["id_grupo", "id_docente"],
+    const gruposEncontrados = await GrupoPeriodo.findAll({
+      where: { id_grupo_periodo: grupoPeriodos },
+      include: [{ model: Grupo, attributes: ["nombre"] }],
     });
-
-    if (!gruposEncontrados.length) {
-      throw new Error("El grupo no está en el sistema");
-    }
 
     const asignados = [];
     const omitidos = [];
 
-    // 2. Validar que el grupo no tenga ya un docente
-    for (const g of gruposEncontrados) {
-      if (g.id_docente) {
+    const idsEncontrados = new Set(
+      gruposEncontrados.map((g) => g.id_grupo_periodo)
+    );
+
+    for (const id of grupoPeriodos) {
+      if (!idsEncontrados.has(id)) {
         omitidos.push({
-          id_grupo: g.id_grupo,
-          motivo: "Este grupo ya tiene un docente asignado.",
+          nombre: `ID ${id}`,
+          motivo: "Este grupo no existe en el sistema.",
         });
-        continue;
       }
-      asignados.push(g.id_grupo);
     }
 
-    // 4. Asignar docente en los grupos válidos
+    for (const grupo of gruposEncontrados) {
+      const nombre = grupo.GRUPO?.nombre || `ID ${grupo.id_grupo_periodo}`;
+      if (grupo.id_docente) {
+        omitidos.push({
+          nombre,
+          motivo: "Este grupo ya tiene un docente asignado.",
+        });
+      } else {
+        asignados.push(grupo.id_grupo_periodo);
+      }
+    }
+
+    // Asignar los válidos
     if (asignados.length > 0) {
-      await Grupo.update(
+      await GrupoPeriodo.update(
         { id_docente },
         {
-          where: { id_grupo: asignados },
+          where: { id_grupo_periodo: asignados },
           transaction,
         }
       );
@@ -74,13 +68,23 @@ async function asignarGruposADocente(id_docente, grupos) {
 
     await transaction.commit();
 
+    const omitidosAgrupados = omitidos.reduce((acc, curr) => {
+      const grupoExistente = acc.find((item) => item.motivo === curr.motivo);
+      if (grupoExistente) {
+        grupoExistente.grupos.push(curr.nombre);
+      } else {
+        acc.push({ motivo: curr.motivo, grupos: [curr.nombre] });
+      }
+      return acc;
+    }, []);
+
     return {
       success: true,
       mensaje: asignados.length
         ? "Grupos asignados al docente correctamente."
         : "No se asignaron nuevos grupos.",
       registrados: asignados,
-      omitidos,
+      omitidos: omitidosAgrupados,
     };
   } catch (error) {
     await transaction.rollback();
@@ -88,23 +92,34 @@ async function asignarGruposADocente(id_docente, grupos) {
   }
 }
 
-async function consultarDocentesConSusGrupos(id_docente) {
+async function consultarDocentesConSusGrupos(id_docente, periodo) {
   try {
-    const whereCondition = id_docente ? { id_docente } : {};
+    const whereDocente = id_docente ? { id_docente } : {};
+    const whereGrupoPeriodo = periodo
+      ? { periodo }
+      : { periodo: obtenerPeriodoActual() };
+
     const docentes = await Docente.findAll({
-      where: whereCondition,
+      where: whereDocente,
       include: [
         {
           model: Usuario,
           attributes: ["identificacion", "nombres", "apellidos", "correo"],
         },
         {
-          model: Grupo,
-          attributes: ["id_grupo", "nombre"],
+          model: GrupoPeriodo,
+          where: { periodo: whereGrupoPeriodo.periodo },
+          required: false,
           include: [
             {
-              model: Asignatura,
-              attributes: ["id_asignatura", "nombre"],
+              model: Grupo,
+              attributes: ["id_grupo", "nombre", "codigo"],
+              include: [
+                {
+                  model: Asignatura,
+                  attributes: ["id_asignatura", "nombre", "codigo"],
+                },
+              ],
             },
           ],
         },
@@ -112,25 +127,28 @@ async function consultarDocentesConSusGrupos(id_docente) {
     });
 
     if (id_docente && docentes.length === 0) {
-      throw new Error("El docente no está registrado");
+      throw new Error("El docente no existe.");
     }
 
-    const data = formatearUsuariosConAsignaturasYGrupos(docentes, "docente");
+    const data = formatearDocentesConAsignaturasYGrupos(docentes);
 
     return {
       success: true,
       mensaje: id_docente
-        ? "Detalle del docente con grupos y asignaturas."
+        ? "Detalle del docente con sus grupos y asignaturas."
         : "Lista de docentes con sus grupos y asignaturas.",
       data,
     };
   } catch (error) {
-    throw new Error(`Error al obtener docentes con grupos: ${error.message}`);
+    return {
+      success: false,
+      mensaje: "Error al obtener docentes con grupos.",
+      error: error.message,
+    };
   }
 }
 
 module.exports = {
-  docentesActivos,
   asignarGruposADocente,
   consultarDocentesConSusGrupos,
 };

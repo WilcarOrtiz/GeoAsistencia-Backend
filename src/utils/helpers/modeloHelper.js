@@ -31,20 +31,7 @@ async function buscarRegistroPorCondicion(
   return registro;
 }
 
-async function encontrarRegistroEnModelo(
-  Model,
-  id,
-  nombreModelo = "El registro"
-) {
-  const record = await Model.findByPk(id);
-  if (!record) {
-    throw new Error(`${nombreModelo} con ID ${id} no está.`);
-  }
-  return record;
-}
-
 module.exports = {
   obtenerModeloPorRol,
   buscarRegistroPorCondicion,
-  encontrarRegistroEnModelo,
 };
