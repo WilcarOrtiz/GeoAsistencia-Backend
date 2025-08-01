@@ -6,17 +6,24 @@ const { verifyToken } = require("../../middlewares/verifyToken");
 
 /**
  * @openapi
- * /estudiante/sin-grupo/{id_asignatura}:
+ * /estudiante/sin-grupo/{id_asignatura}/{periodo}:
  *   get:
  *     tags:
  *       - Estudiante
- *     summary: Obtiene todos los estudiantes que NO estan registrados en ningun grupo de esa asignatura
+ *     summary: Obtiene todos los estudiantes que NO estan registrados en ningun grupo de esa asignatura para el periodo especificado.
  *     parameters:
  *       - in: path
- *         name: id_asignatura 
+ *         name: id_asignatura
+ *         required: true
  *         schema:
  *           type: string
  *         description: ID de la asignatura
+ *       - in: path
+ *         name: periodo
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Período académico "2023-2"
  *     responses:
  *       200:
  *         description: Lista de estudiantes obtenida correctamente
@@ -28,10 +35,29 @@ const { verifyToken } = require("../../middlewares/verifyToken");
  *                 success:
  *                   type: boolean
  *                   example: true
- *                 usuarios:
+ *                 mensaje:
+ *                   type: string
+ *                   example: "Estudiantes fuera de Programación Móvil período 2025-1."
+ *                 estudiantes:
  *                   type: array
  *                   items:
- *                     $ref: '#/components/schemas/Usuario'
+ *                     type: object
+ *                     properties:
+ *                       id_estudiante:
+ *                         type: string
+ *                         example: "XDIpEdPHFENBjIjtWjOk3w3jdYT2"
+ *                       identificacion:
+ *                         type: string
+ *                         example: "1232123212"
+ *                       nombres:
+ *                         type: string
+ *                         example: "Carlos Andrés"
+ *                       apellidos:
+ *                         type: string
+ *                         example: "Pérez Gómez"
+ *                       correo:
+ *                         type: string
+ *                         example: "perez@unicesar.edu.co"
  *       400:
  *         description: Error al obtener los estudiantes
  *         content:
@@ -47,8 +73,8 @@ const { verifyToken } = require("../../middlewares/verifyToken");
  *                   example: "Error al obtener usuarios"
  */
 router.get(
-  "/sin-grupo/:id_asignatura",
-  validarCampos(["id_asignatura"], "params"),
+  "/sin-grupo/:id_asignatura/:periodo",
+  validarCampos(["id_asignatura", "periodo"], "params"),
   estudianteController.obtenerEstudiantesNoAsignadosAGrupo
 );
 
@@ -57,7 +83,14 @@ router.get(
  * /estudiante/{id_estudiante}/grupos:
  *   post:
  *     summary: Asignar grupos de clase a un estudiante
- *     description: Asigna uno o varios grupos a un estudiante en la tabla intermedia ESTUDIANTE_GRUPO, evitando duplicados y conflictos por asignaturas.
+ *     description: >
+ *       Asigna uno o varios grupos a un estudiante en la tabla intermedia ESTUDIANTE_GRUPO.
+ *       La función evita asignaciones duplicadas y conflictos por asignaturas, permitiendo que
+ *       un estudiante esté en un solo grupo por asignatura en un mismo período académico.
+ *       También valida que los grupos existan antes de intentar la asignación.
+ *
+ *       - **grupos** (Body): se refiere a los id_grupo_periodo, ya que la entidad grupo es atemporal,
+ *         pero grupo_periodo no (lo que permite discernir entre grupos de diferentes semestres).
  *     tags:
  *       - Estudiante
  *     parameters:
@@ -77,11 +110,11 @@ router.get(
  *             properties:
  *               grupos:
  *                 type: array
- *                 description: Lista de IDs de grupos a asignar
+ *                 description: Lista de IDs de grupo_periodo a asignar.
  *                 items:
  *                   type: integer
  *             example:
- *               grupos: [14,18,4]
+ *               grupos: [14, 18, 4]
  *     responses:
  *       200:
  *         description: Grupos asignados correctamente, mostrando cuáles fueron registrados y cuáles se omitieron con motivo.
@@ -95,25 +128,38 @@ router.get(
  *                   example: true
  *                 mensaje:
  *                   type: string
- *                   example: "Grupos asignados correctamente."
+ *                   example: "No se asignaron nuevos grupos."
  *                 registrados:
  *                   type: array
  *                   description: Lista de grupos que se registraron exitosamente
  *                   items:
  *                     type: string
- *                   example: ["14", "18"]
+ *                   example: []
  *                 omitidos:
  *                   type: array
- *                   description: Lista de grupos que no se asignaron, con motivo
+ *                   description: Lista de grupos que no se asignaron, agrupados por motivo
  *                   items:
  *                     type: object
  *                     properties:
- *                       id_grupo:
- *                         type: string
- *                         example: "4"
+ *                       grupos:
+ *                         type: array
+ *                         items:
+ *                           type: string
+ *                         example: ["Grupo A", "Grupo B"]
  *                       motivo:
  *                         type: string
- *                         example: "Conflicto: ya seleccionó otro grupo de la misma asignatura"
+ *                         example: "Ya tiene un grupo de esta asignatura"
+ *             example:
+ *               success: true
+ *               mensaje: "No se asignaron nuevos grupos."
+ *               registrados: []
+ *               omitidos:
+ *                 - grupos: ["Grupo A"]
+ *                   motivo: "Ya asignado al estudiante"
+ *                 - grupos: ["Grupo B"]
+ *                   motivo: "Ya tiene un grupo de esta asignatura"
+ *                 - grupos: [" ID 7"]
+ *                   motivo: "El grupo no existe"
  *       400:
  *         description: Error de validación
  *         content:

@@ -3,10 +3,11 @@ const manejarError = require("../utils/handlers/manejadorError");
 
 async function obtenerEstudiantesNoAsignadosAGrupo(req, res) {
   try {
-    const { id_asignatura } = req.params;
+    const { id_asignatura, periodo } = req.params;
     const resultado =
       await estudianteService.obtenerEstudiantesNoAsignadosAGrupo(
-        id_asignatura
+        id_asignatura,
+        periodo
       );
     return res.status(200).json(resultado);
   } catch (error) {
@@ -43,9 +44,8 @@ async function consultarEstudiantesConSusGrupos(req, res) {
 async function obtenerMiPerfil(req, res) {
   try {
     const id_estudiante = req.user.uid;
-    const data = await estudianteService.consultarEstudiantesConSusGrupos(
-      id_estudiante
-    );
+    const data =
+      await estudianteService.consultarEstudiantesConSusGrupos(id_estudiante);
     res.status(200).json(data);
   } catch (error) {
     return manejarError(res, error);
