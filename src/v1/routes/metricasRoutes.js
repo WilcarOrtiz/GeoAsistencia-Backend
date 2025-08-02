@@ -339,10 +339,10 @@ router.get(
  *               type: object
  *               oneOf:
  *                 - properties:
- *                     id_asignatura:
+ *                     id_grupo:
  *                       type: integer
  *                       example: 1
- *                     asignatura:
+ *                     grupo:
  *                       type: string
  *                       example: "Matemáticas"
  *                     asistencias:
@@ -639,6 +639,9 @@ router.get(
  *                   apellidos:
  *                     type: string
  *                     example: "González"
+ *                   correo:
+ *                     type: string
+ *                     example: "gonzalez@unicesar.edu.co"
  *                   grupo:
  *                     type: string
  *                     example: "Matemáticas 10A"

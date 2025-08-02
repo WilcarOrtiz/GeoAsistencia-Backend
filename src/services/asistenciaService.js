@@ -200,9 +200,11 @@ async function registrarAsistencia(id_grupo_periodo, id_estudiante) {
 
     const id_historial = historial_asistencia.id_historial_asistencia;
 
-    const yaRegistrado = await buscarRegistroPorCondicion(Asistencia, {
-      id_estudiante,
-      id_historial_asistencia: id_historial,
+    const yaRegistrado = await Asistencia.findOne({
+      where: {
+        id_estudiante,
+        id_historial_asistencia: id_historial,
+      },
     });
 
     if (yaRegistrado) {
