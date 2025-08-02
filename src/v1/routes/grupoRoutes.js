@@ -574,7 +574,7 @@ router.get(
  *         required: true
  *         schema:
  *           type: integer
- *      - in: path
+ *       - in: path
  *         name: semestre
  *         required: false
  *         schema:

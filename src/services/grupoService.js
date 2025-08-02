@@ -111,13 +111,13 @@ async function trasladarEstudianteDeGrupo(id_grupo, id_estudiante, id_nuevo_grup
     throw new Error("El nuevo grupo debe pertenecer a la misma asignatura.");
   }
 
-  const semestre = semestre || obtenerSemestreActual();
+  const periodo = semestre || obtenerSemestreActual();
 
-  const grupoPeriodoActual = await GrupoPeriodo.findOne({ where: { id_grupo: id_grupo, periodo: semestre } });
-  const grupoPeriodoNuevo = await GrupoPeriodo.findOne({ where: { id_grupo: id_nuevo_grupo, periodo: semestre } });
+  const grupoPeriodoActual = await GrupoPeriodo.findOne({ where: { id_grupo: id_grupo, periodo: periodo } });
+  const grupoPeriodoNuevo = await GrupoPeriodo.findOne({ where: { id_grupo: id_nuevo_grupo, periodo: periodo } });
 
-  if (!grupoPeriodoActual) throw new Error(`No existe relación del grupo actual para el semestre ${semestre}`);
-  if (!grupoPeriodoNuevo) throw new Error(`No existe relación del nuevo grupo para el semestre ${semestre}`);
+  if (!grupoPeriodoActual) throw new Error(`No existe relación del grupo actual para el semestre ${periodo}`);
+  if (!grupoPeriodoNuevo) throw new Error(`No existe relación del nuevo grupo para el semestre ${periodo}`);
 
   const existeOtroGrupo = await EstudianteGrupo.findOne({
     where: {
