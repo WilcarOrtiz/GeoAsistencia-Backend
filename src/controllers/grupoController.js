@@ -79,8 +79,9 @@ async function consultarGrupoPorId(req, res) {
 
 async function consultarGruposPorDocente(req, res) {
   try {
-    const { id_docente, id_asignatura } = req.params;
-    if (!validarParametros(req, res, ["id_docente", "id_asignatura"])) return;
+    const { id_asignatura } = req.params;
+    const id_docente = req.user.uid;
+    if (!validarParametros(req, res, ["id_asignatura"])) return;
     const gruposConsultados = await grupoService.consultarGruposPorDocente(id_asignatura, id_docente);
     return res.status(200).json(gruposConsultados);
   } catch (error) {
@@ -90,9 +91,9 @@ async function consultarGruposPorDocente(req, res) {
 
 async function consultarGruposPorAsignatura(req, res) {
   try {
-    const { id_asignatura, periodo } = req.params;
-    if (!validarParametros(req, res, ["id_asignatura", "periodo"])) return;
-    const gruposConsultados = await grupoService.consultarGruposPorAsignatura(id_asignatura, periodo);
+    const { id_asignatura, semestre } = req.params;
+    if (!validarParametros(req, res, ["id_asignatura", "semestre"])) return;
+    const gruposConsultados = await grupoService.consultarGruposPorAsignatura(id_asignatura, semestre);
     return res.status(200).json(gruposConsultados);
   } catch (error) {
      return manejarError(res, error);
@@ -101,8 +102,9 @@ async function consultarGruposPorAsignatura(req, res) {
 
 async function consultarGruposPorEstudiante(req, res) {
   try {
-    const { id_estudiante, id_asignatura } = req.params;
-    if (!validarParametros(req, res, ["id_estudiante", "id_asignatura"])) return;
+    const { id_asignatura } = req.params;
+    const id_estudiante = req.user.uid;
+    if (!validarParametros(req, res, ["id_asignatura"])) return;
     const gruposConsultados = await grupoService.consultarGruposPorEstudiante(id_asignatura, id_estudiante);
     return res.status(200).json(gruposConsultados);
   } catch (error) {

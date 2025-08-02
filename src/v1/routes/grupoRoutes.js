@@ -503,7 +503,7 @@ router.get(
 
 /**
  * @openapi
- * /grupo/asignatura/{id_asignatura}/docente/{id_docente}:
+ * /grupo/asignatura/{id_asignatura}/docente:
  *   get:
  *     summary: Consultar grupos de una asignatura asociados a un docente
  *     tags: [Grupos]
@@ -513,11 +513,6 @@ router.get(
  *         required: true
  *         schema:
  *           type: integer
- *       - in: path
- *         name: id_docente
- *         required: true
- *         schema:
- *           type: string
  *     responses:
  *       200:
  *         description: Grupos consultados correctamente
@@ -556,7 +551,7 @@ router.get(
  *                   example: "Error interno del servidor: ..."
  */
 router.get(
-  "/asignatura/:id_asignatura/docente/:id_docente",
+  "/asignatura/:id_asignatura/docente",
   verifyToken,
   authorizeRoles("ADMINISTRADOR", "DOCENTE"),
   grupoController.consultarGruposPorDocente
@@ -625,7 +620,7 @@ router.get(
 
 /**
  * @openapi
- * /grupo/asignatura/{id_asignatura}/estudiante/{id_estudiante}:
+ * /grupo/asignatura/{id_asignatura}/estudiante:
  *   get:
  *     summary: Consultar grupos de una asignatura asociados a un estudiante
  *     tags: [Grupos]
@@ -635,11 +630,6 @@ router.get(
  *         required: true
  *         schema:
  *           type: integer
- *       - in: path
- *         name: id_estudiante
- *         required: true
- *         schema:
- *           type: string
  *     responses:
  *       200:
  *         description: Grupos consultados correctamente
@@ -678,7 +668,7 @@ router.get(
  *                   example: "Error interno del servidor: ..."
  */
 router.get(
-  "/asignatura/:id_asignatura/estudiante/:id_estudiante",
+  "/asignatura/:id_asignatura/estudiante",
   verifyToken,
   authorizeRoles("ADMINISTRADOR", "ESTUDIANTE"),
   grupoController.consultarGruposPorEstudiante
@@ -686,7 +676,7 @@ router.get(
 
 /**
  * @openapi
- * /grupo/{id_grupo}/estudiantes:
+ * /grupo/{id_grupo}/estudiantes/semestre/{semestre}:
  *   get:
  *     summary: Consultar estudiantes de un grupo
  *     tags: [Grupos]
@@ -696,6 +686,11 @@ router.get(
  *         required: true
  *         schema:
  *           type: integer
+ *       - in: path
+ *         name: semestre
+ *         required: true
+ *         schema:
+ *           type: string
  *     responses:
  *       200:
  *         description: Estudiantes consultados correctamente
@@ -734,9 +729,9 @@ router.get(
  *                   example: "Error interno del servidor: ..."
  */
 router.get(
-  "/:id_grupo/estudiantes",
+  "/:id_grupo/estudiantes/semestre/:semestre",
   verifyToken,
-  authorizeRoles("ADMINISTRADOR"),
+  authorizeRoles("ADMINISTRADOR","DOCENTE"),
   grupoController.consultarEstudiantesPorId
 );
 

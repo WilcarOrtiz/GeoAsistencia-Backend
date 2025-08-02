@@ -158,7 +158,6 @@ async function consultarGrupoPorId(id_grupo) {
       include: [
       {
           model: Horario,
-          as: "horarios",
           through: { attributes: [] },
           attributes: ["hora_inicio", "hora_fin", "id_dia"],
       },
@@ -203,12 +202,11 @@ async function consultarGruposPorDocente(id_asignatura, id_docente) {
       },
       {
         model: Horario,
-        as: "horarios",
         attributes: ["id_dia", "hora_inicio", "hora_fin"],
         through: { attributes: [] }
       }
     ],
-    group: ["GRUPO.id_grupo", "horarios.id_horario"],
+    group: ["GRUPO.id_grupo", "HORARIOs.id_horario"],
     subQuery: false
   });
 
@@ -222,7 +220,7 @@ async function consultarGruposPorDocente(id_asignatura, id_docente) {
 async function consultarGruposPorAsignatura(id_asignatura, semestre = null) {
   await validarExistencia(Asignatura, id_asignatura, "La asignatura");
 
-  const whereGrupoPeriodo = semestre ? { semestre } : {}; 
+  const whereGrupoPeriodo = semestre ? { periodo: semestre } : {}; 
 
   const grupos = await Grupo.findAll({
     where: { id_asignatura },
@@ -232,9 +230,10 @@ async function consultarGruposPorAsignatura(id_asignatura, semestre = null) {
           Sequelize.literal(`(
             SELECT COUNT(*)
             FROM "ESTUDIANTE_GRUPO" eg
-            INNER JOIN "GRUPO_PERIODO" gp ON gp.id_grupo_periodo = eg.id_grupo_periodo
+            INNER JOIN "GRUPO_PERIODO" gp 
+              ON gp.id_grupo_periodo = eg.id_grupo_periodo
             WHERE gp.id_grupo = "GRUPO".id_grupo
-            ${periodo ? `AND gp.periodo = '${semestre}'` : ""}
+            ${semestre ? `AND gp.periodo = '${semestre}'` : ""}
           )`),
           "cantidad_estudiantes"
         ]
@@ -248,8 +247,6 @@ async function consultarGruposPorAsignatura(id_asignatura, semestre = null) {
         required: false 
       }
     ],
-    group: ["GRUPO.id_grupo", "GRUPO_PERIODO.id_grupo_periodo"],
-    subQuery: false
   });
 
   return {
@@ -266,7 +263,7 @@ async function consultarGruposPorEstudiante(id_asignatura, id_estudiante) {
   await validarExistencia(Estudiante, id_estudiante, "El estudiante");
 
   const semestreActual = obtenerSemestreActual();
-  const whereGrupoPeriodo =  { semestreActual };
+  const whereGrupoPeriodo =  { periodo: semestreActual };
 
   const grupos = await Grupo.findAll({
     where: { id_asignatura },
@@ -294,7 +291,6 @@ async function consultarGruposPorEstudiante(id_asignatura, id_estudiante) {
       },
       {
         model: Horario,
-        as: "horarios",
         attributes: ["id_dia", "hora_inicio", "hora_fin"],
         through: { attributes: [] },
       },
@@ -311,13 +307,13 @@ async function consultarGruposPorEstudiante(id_asignatura, id_estudiante) {
       apellido: grupo.GRUPO_PERIODOs?.[0]?.DOCENTE?.USUARIO?.apellidos || null,
     },
     periodo: grupo.GRUPO_PERIODOs?.[0]?.periodo || null,
-    horarios: grupo.horarios,
+    horarios: grupo.HORARIOs,
   }));
 
   return {
     success: true,
-    mensaje: periodo 
-      ? `Grupos del estudiante para el semestre ${periodo} consultados correctamente.` 
+    mensaje: semestreActual 
+      ? `Grupos del estudiante para el semestre ${semestreActual} consultados correctamente.` 
       : "Grupos del estudiante consultados correctamente (todos los semestres).",
     grupos: resultado,
   };
@@ -326,7 +322,7 @@ async function consultarGruposPorEstudiante(id_asignatura, id_estudiante) {
 async function consultarEstudiantesPorId(id_grupo, semestre = null) {
   await validarExistencia(Grupo, id_grupo, "El grupo");
 
-  const whereGrupoPeriodo = semestre ? { id_grupo, semestre } : { id_grupo };
+  const whereGrupoPeriodo = semestre ? { id_grupo, periodo: semestre } : { id_grupo };
 
   const grupo = await Grupo.findOne({
     where: { id_grupo },
@@ -370,8 +366,8 @@ async function consultarEstudiantesPorId(id_grupo, semestre = null) {
 
   return {
     success: true,
-    mensaje: periodo
-      ? `Estudiantes del grupo ${id_grupo} en el semestre ${periodo} consultados correctamente.`
+    mensaje: semestre
+      ? `Estudiantes del grupo ${id_grupo} en el semestre ${semestre} consultados correctamente.`
       : `Estudiantes del grupo ${id_grupo} consultados correctamente.`,
     estudiantes: estudiantes
   };
@@ -383,24 +379,26 @@ async function iniciarLlamadoLista(id_grupo, tema) {
       include: [
       {
           model: Horario,
-          as: "horarios",
           through: { attributes: [] },
           attributes: ["hora_inicio", "hora_fin", "id_dia"],
       },
       ],
   });
 
-  const fechaActual = new Date();
+  const semestreActual = obtenerSemestreActual();
 
-  const horarioValido = grupo.horarios.some(horario => validarGrupo(horario, fechaActual));
+  const grupoSemestre = await GrupoPeriodo.findOne({where: {id_grupo, periodo: semestreActual}});
+  const fechaActual = new Date();
+  const horarioValido = grupo.HORARIOs.some(horario => validarGrupo(horario, fechaActual));
 
   if (!horarioValido) {
       throw new Error("No se puede iniciar el llamado fuera del horario del grupo.");
   }
 
+  console.log(grupoSemestre);
   grupo.update({estado_asistencia: true});
 
-  const historialCreado = await Historial.create({fecha: fechaActual, tema: tema, id_grupo: id_grupo});
+  const historialCreado = await Historial.create({fecha: fechaActual, tema: tema, id_grupo_periodo: grupoSemestre.id_grupo_periodo});
   return {
       success: true,
       mensaje: "Iniciado llamado a lista correctamente.",
@@ -410,12 +408,15 @@ async function iniciarLlamadoLista(id_grupo, tema) {
 
 async function detenerLlamadoLista(id_grupo) {
   const grupoExistente = await validarExistencia(Grupo, id_grupo, "El grupo");
+  const semestreActual = obtenerSemestreActual();
+
+  const grupoSemestre = await GrupoPeriodo.findOne({where: {id_grupo, periodo: semestreActual}});
 
   await grupoExistente.update({ estado_asistencia: false });
 
   const historial = await Historial.findOne({
     where: {
-      id_grupo,
+      id_grupo_periodo: grupoSemestre.id_grupo_periodo,
       fecha: new Date().toISOString().split('T')[0], 
     },
   });
@@ -427,10 +428,13 @@ async function detenerLlamadoLista(id_grupo) {
   const id_historial_asistencia = historial.id_historial_asistencia;
 
   const estudiantesGrupo = await Estudiante.findAll({
-    include: {
-      model: Grupo,
-      where: { id_grupo },
-    },
+    include: [{
+      model: GrupoPeriodo,
+      where: { id_grupo_periodo: grupoSemestre.id_grupo_periodo },
+      attributes: [],
+      through: { attributes: [] }
+    }],
+    raw: true
   });
 
   const asistenciasRegistradas = await Asistencia.findAll({
@@ -460,12 +464,14 @@ async function detenerLlamadoLista(id_grupo) {
 
 async function cancelarLlamadoLista(id_grupo) {
   const grupoExistente = await validarExistencia(Grupo, id_grupo, "El grupo");
+  const semestreActual = obtenerSemestreActual();
+  const grupoSemestre = await GrupoPeriodo.findOne({where: {id_grupo, periodo: semestreActual}});
 
   await grupoExistente.update({ estado_asistencia: false });
 
   const historial = await Historial.findOne({
     where: {
-      id_grupo,
+      id_grupo_periodo: grupoSemestre.id_grupo_periodo,
       fecha: new Date().toISOString().split('T')[0], 
     },
   });
@@ -474,7 +480,6 @@ async function cancelarLlamadoLista(id_grupo) {
     throw new Error("No se encontró un historial de asistencia para este grupo en esta fecha.");
   }
 
-  await historial.destroy();
   const id_historial_asistencia = historial.id_historial_asistencia;
 
   const asistenciasRegistradas = await Asistencia.findAll({
@@ -482,6 +487,7 @@ async function cancelarLlamadoLista(id_grupo) {
   });
 
   await asistenciasRegistradas.map(a => { a.destroy(); });
+  await historial.destroy();
 
   return {
     success: true,
