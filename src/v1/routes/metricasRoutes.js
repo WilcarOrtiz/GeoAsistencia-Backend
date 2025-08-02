@@ -10,28 +10,16 @@ const metricaController = require("../../controllers/metricaController");
  *   get:
  *     summary: Obtener métricas generales del sistema educativo
  *     description: >
- *       Retorna un resumen estadístico clave del sistema educativo, adaptado al rol del usuario autenticado.
+ *       Retorna un resumen estadístico clave del sistema educativo, adaptado al rol del usuario autenticado. Esta función retorna un resumen de métricas generales del sistema de asistencia, ajustado al rol del usuario. Si es administrador, entrega conteos globales como total de asignaturas, docentes, estudiantes y grupos, además del número de docentes activos e inactivos en un periodo. Si es docente, muestra cuántas asignaturas y grupos imparte y cuántos estudiantes tiene asignados en ese periodo.
  *
- *       - Si el usuario es **administrador**, se incluyen métricas generales como el total de asignaturas, estudiantes, grupos y docentes en todo el sistema.
- *
- *       - Si el usuario es **docente**, se retorna únicamente el total de asignaturas, grupos y estudiantes asociados a sus clases.
  *     parameters:
  *       - in: query
- *         name: periodo
+ *         name: semestre
  *         required: false
  *         schema:
  *           type: string
  *           example: "2025-1"
- *         description: Periodo académico a consultar (obligatorio para el administrador)
- *       - in: query
- *         name: mes
- *         required: false
- *         schema:
- *           type: integer
- *           minimum: 1
- *           maximum: 12
- *           example: 3
- *         description: Número del mes dentro del periodo académico (opcional)
+ *         description: semestre académico a consultar (obligatorio para el administrador)
  *     tags:
  *       - Métricas
  *     security:
@@ -108,21 +96,21 @@ router.get(
  *   get:
  *     summary: Obtener métricas de la asignatura con mayor y menor asistencia
  *     description: >
- *       Identifica la asignatura con el mayor y el menor porcentaje de asistencia por parte de los estudiantes.
+ *       Esta función identifica cuál asignatura tuvo el mayor y el menor porcentaje de asistencia en un periodo o mes específico. Presenta ambos extremos en un mismo objeto JSON con sus respectivos totales y porcentajes.
  *
- *       - Es una metrica exclusiva del usuario **administrador**
+ *       - Metrica exclusiva del **administrador**
  *     tags:
  *       - Métricas
  *     security:
  *       - bearerAuth: []
  *     parameters:
  *       - in: query
- *         name: periodo
+ *         name: semestre
  *         required: false
  *         schema:
  *           type: string
  *           example: "2025-1"
- *         description: Periodo académico a consultar (obligatorio para el administrador)
+ *         description: semestre académico a consultar (obligatorio para el administrador)
  *       - in: query
  *         name: mes
  *         required: false
@@ -131,7 +119,7 @@ router.get(
  *           minimum: 1
  *           maximum: 12
  *           example: 3
- *         description: Número del mes dentro del periodo académico (opcional)
+ *         description: Número del mes dentro del semestre académico (opcional)
  *     responses:
  *       200:
  *         description: Métricas generales obtenidas correctamente.
@@ -219,19 +207,16 @@ router.get(
  *   get:
  *     summary: calcula el porcentaje de asistencias e inasistencias por asignatura.
  *     description: >
- *       calcula el porcentaje de asistencias e inasistencias por asignatura(s), permitiendo evaluar la participación de los estudiantes.
+ *       Proporciona estadísticas de asistencia e inasistencia por cada asignatura, incluyendo los porcentajes respectivos. El administrador obtiene una vista global, mientras que el docente ve solo las asignaturas que ha impartido durante el periodo o mes solicitado.
  *
- *       - Si es **administrador**, realiza el cálculo para todas las asignaturas del sistema.
- *
- *       - Si es **docente** , realiza el cálculo solo para las asignaturas que imparte el docente, tomando como base los grupo de clase.
  *     parameters:
  *       - in: query
- *         name: periodo
+ *         name: semestre
  *         required: false
  *         schema:
  *           type: string
  *           example: "2025-1"
- *         description: Periodo académico a consultar (obligatorio para el administrador)
+ *         description: semestre académico a consultar (obligatorio para el administrador)
  *       - in: query
  *         name: mes
  *         required: false
@@ -240,7 +225,7 @@ router.get(
  *           minimum: 1
  *           maximum: 12
  *           example: 3
- *         description: Número del mes dentro del periodo académico (opcional)
+ *         description: Número del mes dentro del semestre académico (opcional)
  *     tags:
  *       - Métricas
  *     security:
@@ -316,12 +301,12 @@ router.get(
  *     summary: calcula el porcentaje de asistencias e inasistencias por grupo de clase.
  *     parameters:
  *       - in: query
- *         name: periodo
+ *         name: semestre
  *         required: false
  *         schema:
  *           type: string
  *           example: "2025-1"
- *         description: Periodo académico a consultar (obligatorio para el administrador)
+ *         description: semestre académico a consultar (obligatorio para el administrador)
  *       - in: query
  *         name: mes
  *         required: false
@@ -330,7 +315,7 @@ router.get(
  *           minimum: 1
  *           maximum: 12
  *           example: 3
- *         description: Número del mes dentro del periodo académico (opcional)
+ *         description: Número del mes dentro del semestre académico (opcional)
  *       - in: path
  *         name: p_id_asignatura
  *         required: true
@@ -339,11 +324,8 @@ router.get(
  *         description: ID interno de la asignatura.
  *
  *     description: >
- *       calcula el porcentaje de asistencias e inasistencias por grupo de clase, permitiendo evaluar la participación de los estudiantes.
+ *       Esta función calcula el total de asistencias e inasistencias por cada grupo de una asignatura en particular, para un periodo y/o mes dado. Dependiendo del rol, el resultado se filtra globalmente (administrador) o por los grupos que dicta el docente.
  *
- *       - Si es **administrador**, realiza el cálculo para todos los grupos de clase del sistema de dicha asignatura.
- *
- *       - Si es **docente** , realiza el cálculo solo para los grupos de clase que imparte el docente en una asignatura específica.
  *     tags:
  *       - Métricas
  *     security:
@@ -418,19 +400,16 @@ router.get(
  *   get:
  *     summary: los grupos con mayor y menor porcentaje de asistencia.
  *     description: >
- *       El cálculo se basa en la proporción de asistencias registradas frente al total de registros por grupo, permitiendo visualizar cuál grupo presenta el mejor comportamiento en términos de asistencia y cuál requiere mayor seguimiento
+ *       Entrega un resumen con el grupo que tuvo mayor porcentaje de asistencia y el grupo con menor porcentaje, en función del rol del usuario. El docente ve sus propios grupos, mientras que el administrador accede a todos los grupos disponibles.
  *
- *       - Si es **administrador**, realiza el cálculo para todos los grupos de clase del sistema.
- *
- *       - Si es **docente** ,evalúa únicamente los grupos a su cargo.
  *     parameters:
  *       - in: query
- *         name: periodo
+ *         name: semestre
  *         required: false
  *         schema:
  *           type: string
  *           example: "2025-1"
- *         description: Periodo académico a consultar (obligatorio para el administrador)
+ *         description: semestre académico a consultar (obligatorio para el administrador)
  *       - in: query
  *         name: mes
  *         required: false
@@ -439,7 +418,7 @@ router.get(
  *           minimum: 1
  *           maximum: 12
  *           example: 3
- *         description: Número del mes dentro del periodo académico (opcional)
+ *         description: Número del mes dentro del semestre académico (opcional)
  *     tags:
  *       - Métricas
  *     security:
@@ -531,19 +510,16 @@ router.get(
  *   get:
  *     summary: Obtener métricas de indice de falta.
  *     description: >
- *       Esta métrica representa el índice de faltas a clase, calculado como el porcentaje de inasistencias registradas frente al total de asistencias reportadas. Es útil para diagnosticar el nivel de ausentismo en el sistema, identificar tendencias y tomar decisiones preventivas o correctivas en la gestión académica
+ *       Devuelve el índice de inasistencia en porcentaje, junto con el total de registros y faltas. Se basa en un filtro de periodo o mes. Si es administrador, analiza todos los registros; si es docente, solo los de sus grupos asignados.
  *
- *       - Si el usuario es **administrador**, se calcula de forma global..
- *
- *       - Si el usuario es **docente**, se limita a los grupos bajo su responsabilidad.
  *     parameters:
  *       - in: query
- *         name: periodo
+ *         name: semestre
  *         required: false
  *         schema:
  *           type: string
  *           example: "2025-1"
- *         description: Periodo académico a consultar (obligatorio para el administrador)
+ *         description: semestre académico a consultar (obligatorio para el administrador)
  *       - in: query
  *         name: mes
  *         required: false
@@ -552,7 +528,7 @@ router.get(
  *           minimum: 1
  *           maximum: 12
  *           example: 3
- *         description: Número del mes dentro del periodo académico (opcional)
+ *         description: Número del mes dentro del semestre académico (opcional)
  *     tags:
  *       - Métricas
  *     security:
@@ -617,20 +593,20 @@ router.get(
  *   get:
  *     summary: Top 5 los estudiantes con mayor número de inasistencias
  *     description: >
- *       Esta métrica identifica a los cinco estudiantes con mayor porcentaje de inasistencia, calculado a partir de su historial de asistencias registrado en los distintos grupos y asignaturas.
+ *       Genera un listado de los estudiantes con mayor número de inasistencias. El administrador recibe los 5 estudiantes con más inasistencias globales, y el docente los 5 estudiantes con más inasistencias en sus clases, desglosado por grupo.
  *
  *       - Si es **administrador** realiza el cálculo para todos los estudiantes, en todos los grupos de clase
  *
- *       - Si es **docente** evalúa únicamente los estudiantes pertenecientes a sus grupos de clase y para el periodo actual (unicamente)
+ *       - Si es **docente** evalúa únicamente los estudiantes pertenecientes a sus grupos de clase y para el semestre actual (unicamente)
  *
  *     parameters:
  *       - in: query
- *         name: periodo
+ *         name: semestre
  *         required: false
  *         schema:
  *           type: string
  *           example: "2025-1"
- *         description: Periodo académico a consultar
+ *         description: semestre académico a consultar
  *       - in: query
  *         name: mes
  *         required: false
@@ -639,7 +615,7 @@ router.get(
  *           minimum: 1
  *           maximum: 12
  *           example: 3
- *         description: Número del mes dentro del periodo académico (opcional)
+ *         description: Número del mes dentro del semestre académico (opcional)
  *     tags:
  *       - Métricas
  *     security:

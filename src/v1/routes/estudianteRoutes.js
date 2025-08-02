@@ -7,11 +7,11 @@ const { authorizeRoles } = require("../../middlewares/authorizeRoles");
 
 /**
  * @openapi
- * /estudiante/sin-grupo/{id_asignatura}/{periodo}:
+ * /estudiante/sin-grupo/{id_asignatura}/semestre/{semestre}:
  *   get:
  *     tags:
  *       - Estudiante
- *     summary: Obtiene todos los estudiantes que NO estan registrados en ningun grupo de esa asignatura para el periodo especificado.
+ *     summary: Obtiene todos los estudiantes que NO estan registrados en ningun grupo de esa asignatura para el semestre especificado.
  *     parameters:
  *       - in: path
  *         name: id_asignatura
@@ -20,11 +20,11 @@ const { authorizeRoles } = require("../../middlewares/authorizeRoles");
  *           type: string
  *         description: ID de la asignatura
  *       - in: path
- *         name: periodo
+ *         name: semestre
  *         required: true
  *         schema:
  *           type: string
- *         description: Período académico "2025-2"
+ *         description: Semestre académico "2025-2"
  *     responses:
  *       200:
  *         description: Lista de estudiantes obtenida correctamente
@@ -74,10 +74,10 @@ const { authorizeRoles } = require("../../middlewares/authorizeRoles");
  *                   example: "Error al obtener usuarios"
  */
 router.get(
-  "/sin-grupo/:id_asignatura/:periodo",
+  "/sin-grupo/:id_asignatura/semestre/:semestre",
   verifyToken,
   authorizeRoles("ADMINISTRADOR"),
-  validarCampos(["id_asignatura", "periodo"], "params"),
+  validarCampos(["id_asignatura", "semestre"], "params"),
   estudianteController.obtenerEstudiantesNoAsignadosAGrupo
 );
 
@@ -200,7 +200,7 @@ router.post(
 
 /**
  * @openapi
- * /estudiante/grupos/{periodo}:
+ * /estudiante/grupos/{semestre}:
  *   get:
  *     summary: Consultar estudiante(s) con sus grupos y asignaturas
  *     description: Retorna todos los estudiantes con la lista de grupos a los que pertenecen y las asignaturas asociadas. Si se envía un ID de estudiante por query param, devuelve únicamente la información de ese estudiante.
@@ -214,10 +214,10 @@ router.post(
  *         schema:
  *           type: string
  *           example: "12345"
- *       - name: periodo
+ *       - name: semestre
  *         in: path
  *         required: true
- *         description: periodo académico para filtrar los grupos
+ *         description: semestre académico para filtrar los grupos
  *         schema:
  *           type: string
  *           example: "2025-2"
@@ -289,7 +289,7 @@ router.post(
  *                                   codigo:
  *                                     type: string
  *                                     example: "GRP-A-01"
- *                                   periodo:
+ *                                   semestre:
  *                                     type: string
  *                                     example: "2025-1"
  *
@@ -322,7 +322,7 @@ router.post(
  */
 
 router.get(
-  "/grupos/:periodo",
+  "/grupos/:semestre",
   verifyToken,
   authorizeRoles("ADMINISTRADOR"),
   estudianteController.consultarEstudiantesConSusGrupos
@@ -404,7 +404,7 @@ router.get(
  *                                   codigo:
  *                                     type: string
  *                                     example: "GRP-A-01"
- *                                   periodo:
+ *                                   semestre:
  *                                     type: string
  *                                     example: "2025-1"
  *       400:

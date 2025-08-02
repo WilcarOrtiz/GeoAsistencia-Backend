@@ -108,7 +108,7 @@ router.post(
 
 /**
  * @openapi
- * /docente/grupos/{periodo}:
+ * /docente/grupos/{semestre}:
  *   get:
  *     summary: Consultar docente(s) con sus grupos y asignaturas
  *     description: Retorna todos los docentes con la lista de grupos a los que pertenecen y las asignaturas asociadas. Si se envía un ID de docente por query param, devuelve únicamente la información de ese docente.
@@ -122,10 +122,10 @@ router.post(
  *         schema:
  *           type: string
  *           example: "12345"
- *       - name: periodo
+ *       - name: semestre
  *         in: path
  *         required: true
- *         description: periodo académico para filtrar los grupos
+ *         description: semestre académico para filtrar los grupos
  *         schema:
  *           type: string
  *           example: "2025-2"
@@ -197,7 +197,7 @@ router.post(
  *                                   codigo:
  *                                     type: string
  *                                     example: "GRP-A-01"
- *                                   periodo:
+ *                                   semestre:
  *                                     type: string
  *                                     example: "2025-1"
  *
@@ -230,7 +230,7 @@ router.post(
  */
 
 router.get(
-  "/grupos/:periodo",
+  "/grupos/:semestre",
   verifyToken,
   authorizeRoles("ADMINISTRADOR"),
   docenteController.consultarDocentesConSusGrupos
@@ -312,7 +312,7 @@ router.get(
  *                                   codigo:
  *                                     type: string
  *                                     example: "GRP-A-01"
- *                                   periodo:
+ *                                   semestre:
  *                                     type: string
  *                                     example: "2025-1"
  *       400:

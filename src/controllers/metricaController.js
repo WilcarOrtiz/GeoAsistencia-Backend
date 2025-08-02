@@ -6,23 +6,13 @@ async function obtener_metricas_generales(req, res) {
     const p_id_usuario = req.user.uid;
     const p_rol = req.user.rol;
 
-    const { periodo, mes } = req.query;
+    const { semestre } = req.query;
 
     const resultado = await metricaService.obtener_metricas_generales(
       p_id_usuario,
-      p_rol
+      p_rol,
+      semestre ?? null
     );
-    return res.status(200).json(resultado);
-  } catch (error) {
-    return manejarError(res, error);
-  }
-}
-
-async function obtener_asignatura_con_mayor_y_menor_asistencia(req, res) {
-  try {
-    const { periodo, mes } = req.query;
-    const resultado =
-      await metricaService.obtener_asignatura_con_mayor_y_menor_asistencia();
     return res.status(200).json(resultado);
   } catch (error) {
     return manejarError(res, error);
@@ -34,32 +24,13 @@ async function obtener_asistencia_por_asignatura(req, res) {
     const p_id_usuario = req.user.uid;
     const p_rol = req.user.rol;
 
-    const { periodo, mes } = req.query;
+    const { semestre, mes } = req.query;
     const resultado = await metricaService.obtener_asistencia_por_asignatura(
       p_id_usuario,
       p_rol,
-      periodo ?? null,
+      semestre ?? null,
       mes ?? null
     );
-    return res.status(200).json(resultado);
-  } catch (error) {
-    return manejarError(res, error);
-  }
-}
-
-async function obtener_indice_faltas(req, res) {
-  try {
-    const p_id_usuario = req.user.uid;
-    const p_rol = req.user.rol;
-
-    const { periodo, mes } = req.query;
-    const resultado = await metricaService.obtener_indice_faltas(
-      p_id_usuario,
-      p_rol,
-      periodo ?? null,
-      mes ?? null
-    );
-
     return res.status(200).json(resultado);
   } catch (error) {
     return manejarError(res, error);
@@ -72,34 +43,14 @@ async function obtener_asistencia_por_grupo(req, res) {
     const p_rol = req.user.rol;
     const p_id_asignatura = req.params.p_id_asignatura;
 
-    const { periodo, mes } = req.query;
+    const { semestre, mes } = req.query;
     const resultado = await metricaService.obtener_asistencia_por_grupo(
       p_id_usuario,
       p_rol,
       p_id_asignatura,
-      periodo ?? null,
+      semestre ?? null,
       mes ?? null
     );
-
-    return res.status(200).json(resultado);
-  } catch (error) {
-    return manejarError(res, error);
-  }
-}
-
-async function obtener_extremos_asistencia_por_grupo(req, res) {
-  try {
-    const p_id_usuario = req.user.uid;
-    const p_rol = req.user.rol;
-
-    const { periodo, mes } = req.query;
-    const resultado =
-      await metricaService.obtener_extremos_asistencia_por_grupo(
-        p_id_usuario,
-        p_rol,
-        periodo ?? null,
-        mes ?? null
-      );
 
     return res.status(200).json(resultado);
   } catch (error) {
@@ -112,15 +63,68 @@ async function obtener_top_inasistencias_estudiantes(req, res) {
     const p_id_usuario = req.user.uid;
     const p_rol = req.user.rol;
 
-    const { periodo, mes } = req.query;
+    const { semestre, mes } = req.query;
     const resultado =
       await metricaService.obtener_top_inasistencias_estudiantes(
         p_id_usuario,
         p_rol,
-        periodo ?? null,
+        semestre ?? null,
         mes ?? null
       );
 
+    return res.status(200).json(resultado);
+  } catch (error) {
+    return manejarError(res, error);
+  }
+}
+
+async function obtener_extremos_asistencia_por_grupo(req, res) {
+  try {
+    const p_id_usuario = req.user.uid;
+    const p_rol = req.user.rol;
+
+    const { semestre, mes } = req.query;
+    const resultado =
+      await metricaService.obtener_extremos_asistencia_por_grupo(
+        p_id_usuario,
+        p_rol,
+        semestre ?? null,
+        mes ?? null
+      );
+
+    return res.status(200).json(resultado);
+  } catch (error) {
+    return manejarError(res, error);
+  }
+}
+
+async function obtener_indice_faltas(req, res) {
+  try {
+    const p_id_usuario = req.user.uid;
+    const p_rol = req.user.rol;
+
+    const { semestre, mes } = req.query;
+    const resultado = await metricaService.obtener_indice_faltas(
+      p_id_usuario,
+      p_rol,
+      semestre ?? null,
+      mes ?? null
+    );
+
+    return res.status(200).json(resultado);
+  } catch (error) {
+    return manejarError(res, error);
+  }
+}
+
+async function obtener_asignatura_con_mayor_y_menor_asistencia(req, res) {
+  try {
+    const { semestre, mes } = req.query;
+    const resultado =
+      await metricaService.obtener_asignatura_con_mayor_y_menor_asistencia(
+        semestre,
+        mes
+      );
     return res.status(200).json(resultado);
   } catch (error) {
     return manejarError(res, error);
